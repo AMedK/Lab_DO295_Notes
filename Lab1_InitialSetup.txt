@@ -1,0 +1,144 @@
+[student@workstation ~]$ git config --global credential.helper cache
+[student@workstation ~]$ lab-configure
+
+This script configures the connection parameters to access the OpenShift cluster for your lab scripts
+
+ · Enter the API Endpoint: https://api.na46.prod.nextcle.com:6443
+ · Enter the Username: kctfmp
+ · Enter the Password: a25bd0f387584312819d
+ · Enter the GitHub Account Name: whynot108
+ · Enter the Quay.io Account Name: andrew_xu
+
+You entered:
+ · API Endpoint:			https://api.na46.prod.nextcle.com:6443
+ · Username:				kctfmp
+ · Password:				a25bd0f387584312819d
+ · GitHub Account Name:			whynot108
+ · Quay.io Account Name:		andrew_xu
+
+Generated config:
+ · API Endpoint:			https://api.na46.prod.nextcle.com:6443
+ · Wildcard Domain:			apps.na46.prod.nextcle.com
+ · Nexus Server Host:			nexus-common.apps.na46.prod.nextcle.com
+ · Username:				kctfmp
+ · Password:				a25bd0f387584312819d
+ · GitHub Account Name:			whynot108
+ · Quay.io Account Name:		andrew_xu
+
+Verifying your API Endpoint...
+
+Verifying your Nexus host...
+
+Verifying your OpenShift developer user credentials...
+
+Verifying your GitHub account name...
+
+Verifying your Quay.io account name...
+
+Verifying your cluster configuration...
+
+Saving your lab configuration file...
+
+Saving your Maven settings file...
+
+All fine, lab config saved. You can now proceed with your exercises.
+
+If you need to modify the configuration, rerun this script or directly modify the values in /usr/local/etc/ocp4.config.
+
+[student@workstation ~]$ 
+[student@workstation ~]$ ls
+Desktop  Documents  Downloads  Music  Pictures  Public  Templates  Videos
+[student@workstation ~]$ 
+[student@workstation ~]$ git clone https://github.com/whynot108/DO180-apps
+Cloning into 'DO180-apps'...
+remote: Enumerating objects: 92, done.
+remote: Total 92 (delta 0), reused 0 (delta 0), pack-reused 92
+Unpacking objects: 100% (92/92), 225.76 KiB | 1.79 MiB/s, done.
+[student@workstation ~]$ 
+[student@workstation ~]$ ls
+Desktop  DO180-apps  Documents  Downloads  Music  Pictures  Public  Templates  Videos
+[student@workstation ~]$ 
+[student@workstation ~]$ ls
+Desktop  Documents  Downloads  Music  Pictures  Public  Templates  Videos
+[student@workstation ~]$ 
+[student@workstation ~]$ git clone https://github.com/whynot108/DO180-apps
+Cloning into 'DO180-apps'...
+remote: Enumerating objects: 92, done.
+remote: Total 92 (delta 0), reused 0 (delta 0), pack-reused 92
+Unpacking objects: 100% (92/92), 225.76 KiB | 1.79 MiB/s, done.
+[student@workstation ~]$ 
+[student@workstation ~]$ ls
+Desktop  DO180-apps  Documents  Downloads  Music  Pictures  Public  Templates  Videos
+[student@workstation ~]$ 
+[student@workstation ~]$ 
+[student@workstation ~]$ cd DO180-apps/
+[student@workstation DO180-apps]$ git status
+On branch master
+Your branch is up to date with 'origin/master'.
+
+nothing to commit, working tree clean
+[student@workstation DO180-apps]$ 
+[student@workstation DO180-apps]$ git checkout -b testbranch20220214
+Switched to a new branch 'testbranch20220214'
+[student@workstation DO180-apps]$ 
+[student@workstation DO180-apps]$ echo "DO180" > TEST_DO180_20220214
+[student@workstation DO180-apps]$ 
+[student@workstation DO180-apps]$ git add .
+[student@workstation DO180-apps]$ git status
+On branch testbranch20220214
+Changes to be committed:
+  (use "git restore --staged <file>..." to unstage)
+	new file:   TEST_DO180_20220214
+
+[student@workstation DO180-apps]$ git commit -am "DO180_20220214"
+[testbranch20220214 c19c5f6] DO180_20220214
+ 1 file changed, 1 insertion(+)
+ create mode 100644 TEST_DO180_20220214
+[student@workstation DO180-apps]$ 
+[student@workstation DO180-apps]$ git push --set-upstream origin testbranch
+error: src refspec testbranch does not match any
+error: failed to push some refs to 'https://github.com/whynot108/DO180-apps'
+[student@workstation DO180-apps]$ 
+[student@workstation DO180-apps]$ git push --set-upstream origin testbranch20220214
+Gtk-Message: 10:32:07.830: Failed to load module "canberra-gtk-module"
+Gtk-Message: 10:32:41.758: Failed to load module "canberra-gtk-module"
+Enumerating objects: 4, done.
+Counting objects: 100% (4/4), done.
+Delta compression using up to 2 threads
+Compressing objects: 100% (2/2), done.
+Writing objects: 100% (3/3), 306 bytes | 306.00 KiB/s, done.
+Total 3 (delta 1), reused 0 (delta 0), pack-reused 0
+remote: Resolving deltas: 100% (1/1), completed with 1 local object.
+remote: 
+remote: Create a pull request for 'testbranch20220214' on GitHub by visiting:
+remote:      https://github.com/whynot108/DO180-apps/pull/new/testbranch20220214
+remote: 
+To https://github.com/whynot108/DO180-apps
+ * [new branch]      testbranch20220214 -> testbranch20220214
+Branch 'testbranch20220214' set up to track remote branch 'testbranch20220214' from 'origin'.
+[student@workstation DO180-apps]$ 
+
+[student@workstation DO180-apps]$ echo "OCP4.6" > TEST_OCP4.6
+[student@workstation DO180-apps]$ git add .
+[student@workstation DO180-apps]$ git commit -am "OCP4.6"
+[testbranch20220214 d9e2595] OCP4.6
+ 1 file changed, 1 insertion(+)
+ create mode 100644 TEST_OCP4.6
+[student@workstation DO180-apps]$ git push
+Enumerating objects: 4, done.
+Counting objects: 100% (4/4), done.
+Delta compression using up to 2 threads
+Compressing objects: 100% (2/2), done.
+Writing objects: 100% (3/3), 295 bytes | 295.00 KiB/s, done.
+Total 3 (delta 1), reused 0 (delta 0), pack-reused 0
+remote: Resolving deltas: 100% (1/1), completed with 1 local object.
+To https://github.com/whynot108/DO180-apps
+   c19c5f6..d9e2595  testbranch20220214 -> testbranch20220214
+[student@workstation DO180-apps]$ 
+
+echo 'source /usr/local/etc/ocp4.config' >> ~/.bashrc
+source ~/.bashrc
+
+
+
+

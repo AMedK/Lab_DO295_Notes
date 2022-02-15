@@ -1,0 +1,177 @@
+[student@workstation DO180-apps]$ mkdir -pv /home/student/local/mysql
+mkdir: created directory '/home/student/local/mysql'
+[student@workstation DO180-apps]$ 
+[student@workstation DO180-apps]$ sudo semanage fcontext -a \
+> -t container_file_t '/home/student/local/mysql(/.*)?'
+[student@workstation DO180-apps]$ 
+[student@workstation DO180-apps]$ sudo restorecon -R /home/student/local/mysql
+[student@workstation DO180-apps]$ 
+[student@workstation DO180-apps]$ podman unshare chown -Rv 27:27 /home/student/local/mysql
+changed ownership of '/home/student/local/mysql' from root:root to 27:27
+[student@workstation DO180-apps]$ 
+[student@workstation DO180-apps]$ podman run --name mysql-1 -p 13306:3306 \
+> -d -v /home/student/local/mysql:/var/lib/mysql/data \
+> -e MYSQL_USER=user1 -e MYSQL_PASSWORD=mypa55 \
+> -e MYSQL_DATABASE=items -e MYSQL_ROOT_PASSWORD=r00tpa55 \
+> registry.redhat.io/rhel8/mysql-80:1
+Trying to pull registry.redhat.io/rhel8/mysql-80:1...
+Getting image source signatures
+Checking if image destination supports signatures
+Copying blob 79a56ba04a30 done  
+Copying blob 8671113e1c57 done  
+Copying blob 92b96a23baf1 done  
+Copying blob 5dcbdc60ea6b done  
+Copying config 61643125ec done  
+Writing manifest to image destination
+Storing signatures
+4d061fdd3970cca709314e35815568891229da72ffcc2a9c5041a93145ff399d
+[student@workstation DO180-apps]$ 
+[student@workstation DO180-apps]$ 
+[student@workstation DO180-apps]$ podman ps --format="{{.ID}} {{.Names}}"
+4d061fdd3970 mysql-1
+[student@workstation DO180-apps]$ 
+[student@workstation DO180-apps]$ mysql -uuser1 -h 127.0.0.1 \
+> -pmypa55 -P13306 items < /home/student/DO180/labs/manage-review/db.sql
+[student@workstation DO180-apps]$ 
+[student@workstation DO180-apps]$ mysql -uuser1 -h 127.0.0.1 -pmypa55 \
+> -P13306 items -e "SELECT * FROM Item"
++----+-------------------+------+
+| id | description       | done |
++----+-------------------+------+
+|  1 | Pick up newspaper |    0 |
+|  2 | Buy groceries     |    1 |
++----+-------------------+------+
+[student@workstation DO180-apps]$ 
+[student@workstation DO180-apps]$ podman stop mysql-1
+4d061fdd3970cca709314e35815568891229da72ffcc2a9c5041a93145ff399d
+[student@workstation DO180-apps]$ 
+[student@workstation DO180-apps]$ 
+[student@workstation DO180-apps]$ 
+[student@workstation DO180-apps]$ podman run --name mysql-2 \
+> -d -v /home/student/local/mysql:/var/lib/mysql/data \
+> -p 13306:3306 \
+> -e MYSQL_USER=user1 -e MYSQL_PASSWORD=mypa55 \
+> -e MYSQL_DATABASE=items -e MYSQL_ROOT_PASSWORD=r00tpa55 \
+> registry.redhat.io/rhel8/mysql-80:1
+4e5d9ad72b560c2048474d3d4b9d340f58aa4cd8926fb8126e43696abee80ba3
+[student@workstation DO180-apps]$ 
+[student@workstation DO180-apps]$ podman ps --format="{{.ID}} {{.Names}}"
+4e5d9ad72b56 mysql-2
+[student@workstation DO180-apps]$ 
+[student@workstation DO180-apps]$ podman ps -a > /tmp/my-containers
+[student@workstation DO180-apps]$ 
+[student@workstation DO180-apps]$ 
+[student@workstation DO180-apps]$ podman exec -it mysql-2 /bin/bash
+bash-4.4$ mysql -uroot
+Welcome to the MySQL monitor.  Commands end with ; or \g.
+Your MySQL connection id is 8
+Server version: 8.0.26 Source distribution
+
+Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+
+Oracle is a registered trademark of Oracle Corporation and/or its
+affiliates. Other names may be trademarks of their respective
+owners.
+
+Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
+
+mysql> show databases;
++--------------------+
+| Database           |
++--------------------+
+| information_schema |
+| items              |
+| mysql              |
+| performance_schema |
+| sys                |
++--------------------+
+5 rows in set (0.01 sec)
+
+mysql> use items;
+Database changed
+mysql> 
+mysql> show tables;
++-----------------+
+| Tables_in_items |
++-----------------+
+| Item            |
++-----------------+
+1 row in set (0.00 sec)
+
+mysql> 
+mysql> SELECT * FROM Item;
++----+-------------------+------+
+| id | description       | done |
++----+-------------------+------+
+|  1 | Pick up newspaper |    0 |
+|  2 | Buy groceries     |    1 |
++----+-------------------+------+
+2 rows in set (0.00 sec)
+
+mysql> 
+mysql> exit
+Bye
+bash-4.4$ 
+bash-4.4$ exit
+exit
+[student@workstation DO180-apps]$ 
+[student@workstation DO180-apps]$ 
+[student@workstation DO180-apps]$ mysql -uuser1 -h workstation.lab.example.com \
+> -pmypa55 -P13306 items
+Reading table information for completion of table and column names
+You can turn off this feature to get a quicker startup with -A
+
+Welcome to the MariaDB monitor.  Commands end with ; or \g.
+Your MySQL connection id is 9
+Server version: 8.0.26 Source distribution
+
+Copyright (c) 2000, 2018, Oracle, MariaDB Corporation Ab and others.
+
+Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
+
+MySQL [items]> 
+MySQL [items]> show tables;
++-----------------+
+| Tables_in_items |
++-----------------+
+| Item            |
++-----------------+
+1 row in set (0.001 sec)
+
+MySQL [items]> insert into Item (description, done) values ('Finished lab', 1);
+Query OK, 1 row affected (0.018 sec)
+
+MySQL [items]> 
+MySQL [items]> insert into Item (description, done) values ('Finished lab', 1);
+Query OK, 1 row affected (0.017 sec)
+
+MySQL [items]> 
+MySQL [items]> SELECT * FROM Item;
++----+-------------------+------+
+| id | description       | done |
++----+-------------------+------+
+|  1 | Pick up newspaper |    0 |
+|  2 | Buy groceries     |    1 |
+|  3 | Finished lab      |    1 |
+|  4 | Finished lab      |    1 |
++----+-------------------+------+
+4 rows in set (0.001 sec)
+
+MySQL [items]> 
+MySQL [items]> 
+MySQL [items]> exit
+Bye
+[student@workstation DO180-apps]$ 
+[student@workstation DO180-apps]$ podman ps -a
+CONTAINER ID  IMAGE                                COMMAND     CREATED         STATUS                    PORTS                    NAMES
+4d061fdd3970  registry.redhat.io/rhel8/mysql-80:1  run-mysqld  12 minutes ago  Exited (0) 9 minutes ago  0.0.0.0:13306->3306/tcp  mysql-1
+4e5d9ad72b56  registry.redhat.io/rhel8/mysql-80:1  run-mysqld  7 minutes ago   Up 7 minutes ago          0.0.0.0:13306->3306/tcp  mysql-2
+[student@workstation DO180-apps]$ 
+[student@workstation DO180-apps]$ podman rm mysql-1
+4d061fdd3970cca709314e35815568891229da72ffcc2a9c5041a93145ff399d
+[student@workstation DO180-apps]$ 
+[student@workstation DO180-apps]$ podman ps -a
+CONTAINER ID  IMAGE                                COMMAND     CREATED        STATUS            PORTS                    NAMES
+4e5d9ad72b56  registry.redhat.io/rhel8/mysql-80:1  run-mysqld  8 minutes ago  Up 8 minutes ago  0.0.0.0:13306->3306/tcp  mysql-2
+[student@workstation DO180-apps]$ 
+

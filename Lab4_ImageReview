@@ -1,0 +1,116 @@
+[student@workstation DO180-apps]$ lab image-review start
+
+Setting up workstation for the Lab: Managing Images
+
+ · Checking podman configuration...............................  SUCCESS
+[student@workstation DO180-apps]$ 
+[student@workstation DO180-apps]$ podman pull quay.io/redhattraining/nginx:1.17
+Trying to pull quay.io/redhattraining/nginx:1.17...
+Getting image source signatures
+Copying blob d1a81ca518e2 done  
+Copying blob c78335199707 done  
+Copying blob b00ee4473ca6 done  
+Copying config 9beeba249f done  
+Writing manifest to image destination
+Storing signatures
+9beeba249f3ee158d3e495a6ac25c5667ae2de8a43ac2a8bfd2bf687a58c06c9
+[student@workstation DO180-apps]$ 
+[student@workstation DO180-apps]$ podman images
+REPOSITORY                    TAG     IMAGE ID      CREATED        SIZE
+quay.io/redhattraining/nginx  1.17    9beeba249f3e  21 months ago  131 MB
+[student@workstation DO180-apps]$ 
+[student@workstation DO180-apps]$ podman run --name official-nginx \
+> -d -p 8080:80 quay.io/redhattraining/nginx:1.17
+a126b44e572502c5fca5e6733bd99b6848fe4857ae46a502dbcaa0a9cced8170
+[student@workstation DO180-apps]$ 
+[student@workstation DO180-apps]$ podman exec -it official-nginx /bin/bash
+root@a126b44e5725:/# 
+root@a126b44e5725:/# echo 'DO180' > /usr/share/nginx/html/index.html
+root@a126b44e5725:/# 
+root@a126b44e5725:/# exit
+exit
+[student@workstation DO180-apps]$ 
+[student@workstation DO180-apps]$ curl 127.0.0.1:8080
+DO180
+[student@workstation DO180-apps]$ 
+[student@workstation DO180-apps]$ podman stop official-nginx
+a126b44e572502c5fca5e6733bd99b6848fe4857ae46a502dbcaa0a9cced8170
+[student@workstation DO180-apps]$ 
+[student@workstation DO180-apps]$ 
+[student@workstation DO180-apps]$ podman commit -a 'Andrew Xu' \
+> official-nginx do180/mynginx:v1.0-SNAPSHOT
+Getting image source signatures
+Copying blob ffc9b21953f4 skipped: already exists  
+Copying blob 2f4accd375d9 skipped: already exists  
+Copying blob 6c7de695ede3 skipped: already exists  
+Copying blob a442d50475d7 done  
+Copying config d2ab5a1c7a done  
+Writing manifest to image destination
+Storing signatures
+d2ab5a1c7a36c58cb79a78ca9ef1878f4f3ad56f8f72c45a8bd72c2c15da238e
+[student@workstation DO180-apps]$ 
+[student@workstation DO180-apps]$ podman images
+REPOSITORY                    TAG            IMAGE ID      CREATED        SIZE
+localhost/do180/mynginx       v1.0-SNAPSHOT  d2ab5a1c7a36  9 seconds ago  131 MB
+quay.io/redhattraining/nginx  1.17           9beeba249f3e  21 months ago  131 MB
+[student@workstation DO180-apps]$ 
+[student@workstation DO180-apps]$ 
+[student@workstation DO180-apps]$ podman run --name official-nginx-dev \
+> -d -p 8080:80 do180/mynginx:v1.0-SNAPSHOT
+db80f0f4a0a571b925b07e582dcdfb0b8a055e50ee3ef6458f9552d2fc2fc0eb
+[student@workstation DO180-apps]$ 
+[student@workstation DO180-apps]$ podman exec -it official-nginx-dev /bin/bash
+root@db80f0f4a0a5:/# 
+root@db80f0f4a0a5:/# echo 'DO180 Page' > /usr/share/nginx/html/index.html
+root@db80f0f4a0a5:/# 
+root@db80f0f4a0a5:/# exit
+exit
+[student@workstation DO180-apps]$ 
+[student@workstation DO180-apps]$ curl 127.0.0.1:8080
+DO180 Page
+[student@workstation DO180-apps]$ 
+
+podman stop official-nginx-dev
+
+[student@workstation ~]$ podman commit -a 'Andrew Xu' \
+> official-nginx-dev do180/mynginx:v1.0
+
+[student@workstation ~]$ 
+[student@workstation ~]$ podman images
+REPOSITORY                    TAG            IMAGE ID      CREATED        SIZE
+localhost/do180/mynginx       v1.0           b43a45eb6db9  3 minutes ago  131 MB
+localhost/do180/mynginx       v1.0-SNAPSHOT  d2ab5a1c7a36  9 minutes ago  131 MB
+quay.io/redhattraining/nginx  1.17           9beeba249f3e  21 months ago  131 MB
+[student@workstation ~]$ 
+[student@workstation ~]$ podman ps -a \
+> --format="{{.ID}} {{.Names}} {{.Status}}"
+a126b44e5725 official-nginx Exited (0) 12 minutes ago
+db80f0f4a0a5 official-nginx-dev Exited (0) 6 minutes ago
+[student@workstation ~]$ 
+[student@workstation ~]$ podman rm official-nginx-dev
+db80f0f4a0a571b925b07e582dcdfb0b8a055e50ee3ef6458f9552d2fc2fc0eb
+[student@workstation ~]$ 
+[student@workstation ~]$ podman ps -a \
+> --format="{{.ID}} {{.Names}} {{.Status}}"
+a126b44e5725 official-nginx Exited (0) 13 minutes ago
+[student@workstation ~]$ 
+[student@workstation ~]$ podman rmi do180/mynginx:v1.0-SNAPSHOT
+Untagged: localhost/do180/mynginx:v1.0-SNAPSHOT
+[student@workstation ~]$ 
+[student@workstation ~]$ podman images
+REPOSITORY                    TAG     IMAGE ID      CREATED        SIZE
+localhost/do180/mynginx       v1.0    b43a45eb6db9  6 minutes ago  131 MB
+quay.io/redhattraining/nginx  1.17    9beeba249f3e  21 months ago  131 MB
+[student@workstation ~]$ 
+[student@workstation ~]$ podman run -d --name my-nginx \
+> -p 8280:80 do180/mynginx:v1.0
+5122a6cb6cf764d87a368551e74240148e22ea381f6f9e20b4ce223ea0e821d6
+[student@workstation ~]$ 
+[student@workstation ~]$ curl 127.0.0.1:8280
+DO180 Page
+[student@workstation ~]$ 
+
+
+
+
+

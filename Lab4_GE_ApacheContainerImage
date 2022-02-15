@@ -1,0 +1,174 @@
+[student@workstation DO180-apps]$ 
+[student@workstation DO180-apps]$ podman login quay.io
+Username: andrew_xu
+Password: 
+Login Succeeded!
+[student@workstation DO180-apps]$ 
+[student@workstation DO180-apps]$ 
+[student@workstation DO180-apps]$ podman run -d --name official-httpd \
+> -p 8180:80 quay.io/redhattraining/httpd-parent
+Trying to pull quay.io/redhattraining/httpd-parent:latest...
+Getting image source signatures
+Copying blob a3ed95caeb02 done  
+Copying blob a3ed95caeb02 done  
+Copying blob 787f47dbeaac done  
+Copying blob a3ed95caeb02 done  
+Copying blob 6a5240d60dc4 done  
+Copying blob a3ed95caeb02 skipped: already exists  
+Copying blob a3ed95caeb02 skipped: already exists  
+Copying blob 08b8c9fdec44 done  
+Copying blob a3ed95caeb02 skipped: already exists  
+Copying blob 408208567b9a done  
+Writing manifest to image destination
+Storing signatures
+d97cc9c31e5c82d2f21e8efdcc6e8b033b2311d0b5fa4850de6df8176d855c26
+[student@workstation DO180-apps]$ 
+[student@workstation DO180-apps]$ curl 127.0.0.1:8180
+Hello from the httpd-parent container!
+[student@workstation DO180-apps]$ 
+[student@workstation DO180-apps]$ 
+[student@workstation DO180-apps]$ podman exec -it official-httpd /bin/bash
+bash-4.4# 
+bash-4.4# echo "DO180 Page" > /var/www/html/do180.html
+bash-4.4# 
+bash-4.4# exit
+exit
+[student@workstation DO180-apps]$ 
+[student@workstation DO180-apps]$ curl 127.0.0.1:8180/do180.html
+DO180 Page
+[student@workstation DO180-apps]$ 
+[student@workstation DO180-apps]$ 
+[student@workstation DO180-apps]$ podman diff official-httpd
+C /var
+C /var/log
+C /var/log/httpd
+A /var/log/httpd/access_log
+A /var/log/httpd/error_log
+C /var/www
+C /var/www/html
+A /var/www/html/do180.html
+C /root
+A /root/.bash_history
+C /run/httpd
+A /run/httpd/httpd.pid
+A /run/httpd/cgisock.1
+[student@workstation DO180-apps]$ 
+[student@workstation DO180-apps]$ 
+[student@workstation DO180-apps]$ podman ps
+CONTAINER ID  IMAGE                                       COMMAND               CREATED        STATUS            PORTS                 NAMES
+d97cc9c31e5c  quay.io/redhattraining/httpd-parent:latest  /bin/sh -c /usr/s...  4 minutes ago  Up 4 minutes ago  0.0.0.0:8180->80/tcp  official-httpd
+[student@workstation DO180-apps]$ 
+[student@workstation DO180-apps]$ podman stop official-httpd
+d97cc9c31e5c82d2f21e8efdcc6e8b033b2311d0b5fa4850de6df8176d855c26
+[student@workstation DO180-apps]$ 
+[student@workstation DO180-apps]$ podman ps
+CONTAINER ID  IMAGE   COMMAND  CREATED  STATUS  PORTS   NAMES
+[student@workstation DO180-apps]$ 
+[student@workstation DO180-apps]$ 
+[student@workstation DO180-apps]$ podman commit \
+> -a 'Andrew Xu' official-httpd do180-custom-httpd
+Getting image source signatures
+Copying blob 24d85c895b6b skipped: already exists  
+Copying blob c613b100be16 skipped: already exists  
+Copying blob 574bcc187eda skipped: already exists  
+Copying blob 7f9108fde4a1 skipped: already exists  
+Copying blob 8219ef452a53 done  
+Copying config 60972f23ef done  
+Writing manifest to image destination
+Storing signatures
+60972f23ef2eff40d2b44733d25aa24c4c69e66f0089491ae39ec4ee37ccf63b
+[student@workstation DO180-apps]$ 
+[student@workstation DO180-apps]$ 
+[student@workstation DO180-apps]$ podman images
+REPOSITORY                           TAG     IMAGE ID      CREATED             SIZE
+localhost/do180-custom-httpd         latest  60972f23ef2e  About a minute ago  236 MB
+quay.io/redhattraining/httpd-parent  latest  4346d3cace25  2 years ago         236 MB
+[student@workstation DO180-apps]$ 
+[student@workstation DO180-apps]$ source /usr/local/etc/ocp4.config
+[student@workstation DO180-apps]$ 
+[student@workstation DO180-apps]$ podman tag do180-custom-httpd \
+> quay.io/${RHT_OCP4_QUAY_USER}/do180-custom-httpd:v1.0
+[student@workstation DO180-apps]$ 
+[student@workstation DO180-apps]$ podman images
+REPOSITORY                            TAG     IMAGE ID      CREATED        SIZE
+localhost/do180-custom-httpd          latest  60972f23ef2e  2 minutes ago  236 MB
+quay.io/andrew_xu/do180-custom-httpd  v1.0    60972f23ef2e  2 minutes ago  236 MB
+quay.io/redhattraining/httpd-parent   latest  4346d3cace25  2 years ago    236 MB
+[student@workstation DO180-apps]$ 
+[student@workstation DO180-apps]$ podman push \
+> quay.io/${RHT_OCP4_QUAY_USER}/do180-custom-httpd:v1.0
+Getting image source signatures
+Copying blob 8219ef452a53 done  
+Copying blob 24d85c895b6b skipped: already exists  
+Copying blob 574bcc187eda skipped: already exists  
+Copying blob c613b100be16 skipped: already exists  
+Copying blob 7f9108fde4a1 skipped: already exists  
+Copying config 60972f23ef done  
+Writing manifest to image destination
+Copying config 60972f23ef [--------------------------------------] 0.0b / 4.1KiB
+Writing manifest to image destination
+Storing signatures
+[student@workstation DO180-apps]$ 
+[student@workstation DO180-apps]$ 
+[student@workstation DO180-apps]$ podman images
+REPOSITORY                            TAG     IMAGE ID      CREATED        SIZE
+localhost/do180-custom-httpd          latest  60972f23ef2e  6 minutes ago  236 MB
+quay.io/andrew_xu/do180-custom-httpd  v1.0    60972f23ef2e  6 minutes ago  236 MB
+quay.io/redhattraining/httpd-parent   latest  4346d3cace25  2 years ago    236 MB
+[student@workstation DO180-apps]$ 
+[student@workstation DO180-apps]$ podman rmi 60972f23ef2e
+Error: 1 error occurred:
+	* unable to delete 60972f23ef2eff40d2b44733d25aa24c4c69e66f0089491ae39ec4ee37ccf63b (must force) - image is referred to in multiple tags: image is being used
+[student@workstation DO180-apps]$ 
+[student@workstation DO180-apps]$ podman rmi quay.io/andrew_xu/do180-custom-httpd
+Error: 1 error occurred:
+	* unable to find 'quay.io/andrew_xu/do180-custom-httpd' in local storage: no such image
+[student@workstation DO180-apps]$ 
+[student@workstation DO180-apps]$ podman images
+REPOSITORY                            TAG     IMAGE ID      CREATED        SIZE
+localhost/do180-custom-httpd          latest  60972f23ef2e  7 minutes ago  236 MB
+quay.io/andrew_xu/do180-custom-httpd  v1.0    60972f23ef2e  7 minutes ago  236 MB
+quay.io/redhattraining/httpd-parent   latest  4346d3cace25  2 years ago    236 MB
+[student@workstation DO180-apps]$ 
+[student@workstation DO180-apps]$ podman rmi quay.io/andrew_xu/do180-custom-httpd:v1.0
+Untagged: quay.io/andrew_xu/do180-custom-httpd:v1.0
+[student@workstation DO180-apps]$ 
+[student@workstation DO180-apps]$ podman images
+REPOSITORY                           TAG     IMAGE ID      CREATED        SIZE
+localhost/do180-custom-httpd         latest  60972f23ef2e  8 minutes ago  236 MB
+quay.io/redhattraining/httpd-parent  latest  4346d3cace25  2 years ago    236 MB
+[student@workstation DO180-apps]$ 
+[student@workstation DO180-apps]$ podman pull \
+> -q quay.io/${RHT_OCP4_QUAY_USER}/do180-custom-httpd:v1.0
+60972f23ef2eff40d2b44733d25aa24c4c69e66f0089491ae39ec4ee37ccf63b
+[student@workstation DO180-apps]$ 
+[student@workstation DO180-apps]$ podman images
+REPOSITORY                            TAG     IMAGE ID      CREATED        SIZE
+quay.io/andrew_xu/do180-custom-httpd  v1.0    60972f23ef2e  9 minutes ago  236 MB
+localhost/do180-custom-httpd          latest  60972f23ef2e  9 minutes ago  236 MB
+quay.io/redhattraining/httpd-parent   latest  4346d3cace25  2 years ago    236 MB
+[student@workstation DO180-apps]$ 
+[student@workstation DO180-apps]$ 
+[student@workstation DO180-apps]$ podman ps
+CONTAINER ID  IMAGE   COMMAND  CREATED  STATUS  PORTS   NAMES
+[student@workstation DO180-apps]$ 
+[student@workstation DO180-apps]$ podman ps -a
+CONTAINER ID  IMAGE                                       COMMAND               CREATED         STATUS                     PORTS                 NAMES
+d97cc9c31e5c  quay.io/redhattraining/httpd-parent:latest  /bin/sh -c /usr/s...  17 minutes ago  Exited (0) 12 minutes ago  0.0.0.0:8180->80/tcp  official-httpd
+[student@workstation DO180-apps]$ 
+[student@workstation DO180-apps]$ podman run -d --name test-httpd -p 8280:80 \
+> ${RHT_OCP4_QUAY_USER}/do180-custom-httpd:v1.0
+a78681575b5f324c9fd270e118ab43349a2c895d5935ae8703b7d46da482351d
+[student@workstation DO180-apps]$ 
+[student@workstation DO180-apps]$ podman ps
+CONTAINER ID  IMAGE                                      COMMAND               CREATED        STATUS            PORTS                 NAMES
+a78681575b5f  quay.io/andrew_xu/do180-custom-httpd:v1.0  /bin/sh -c /usr/s...  6 seconds ago  Up 6 seconds ago  0.0.0.0:8280->80/tcp  test-httpd
+[student@workstation DO180-apps]$ 
+[student@workstation DO180-apps]$ curl http://localhost:8280/do180.html
+DO180 Page
+[student@workstation DO180-apps]$ 
+
+
+
+
+

@@ -1,0 +1,133 @@
+[student@workstation dockerfile-create]$ oc new-project ${RHT_OCP4_DEV_USER}-route
+Now using project "kctfmp-route" on server "https://api.na46.prod.nextcle.com:6443".
+
+You can add applications to this project with the 'new-app' command. For example, try:
+
+    oc new-app rails-postgresql-example
+
+to build a new example application in Ruby. Or use kubectl to deploy a simple Kubernetes application:
+
+    kubectl create deployment hello-node --image=k8s.gcr.io/serve_hostname
+
+[student@workstation dockerfile-create]$ 
+[student@workstation dockerfile-create]$ oc new-app \
+> --docker-image=quay.io/redhattraining/php-hello-dockerfile \
+> --name php-helloworld
+--> Found container image 4b696cc (2 years old) from quay.io for "quay.io/redhattraining/php-hello-dockerfile"
+
+    Red Hat Universal Base Image 8 
+    ------------------------------ 
+    The Universal Base Image is designed and engineered to be the base layer for all of your containerized applications, middleware and utilities. This base image is freely redistributable, but Red Hat only supports Red Hat technologies through subscriptions for Red Hat products. This image is maintained by Red Hat and updated regularly.
+
+    Tags: base rhel8
+
+    * An image stream tag will be created as "php-helloworld:latest" that will track this image
+
+--> Creating resources ...
+    imagestream.image.openshift.io "php-helloworld" created
+    deployment.apps "php-helloworld" created
+    service "php-helloworld" created
+--> Success
+    Application is not exposed. You can expose services to the outside world by executing one or more of the commands below:
+     'oc expose service/php-helloworld' 
+    Run 'oc status' to view your app.
+[student@workstation dockerfile-create]$ 
+[student@workstation dockerfile-create]$ oc get pods -w
+NAME                              READY   STATUS    RESTARTS   AGE
+php-helloworld-74bb86f6cb-krt8r   1/1     Running   0          17s
+^C[student@workstation dockerfile-create]$ 
+[student@workstation dockerfile-create]$ 
+[student@workstation dockerfile-create]$ oc logs -f php-helloworld-74bb86f6cb-krt8r
+AH00558: httpd: Could not reliably determine the server's fully qualified domain name, using 10.131.2.84. Set the 'ServerName' directive globally to suppress this message
+[15-Feb-2022 19:31:25] NOTICE: [pool www] 'user' directive is ignored when FPM is not running as root
+[15-Feb-2022 19:31:25] NOTICE: [pool www] 'group' directive is ignored when FPM is not running as root
+^C
+[student@workstation dockerfile-create]$ 
+[student@workstation dockerfile-create]$ oc describe svc/php-helloworld
+Name:              php-helloworld
+Namespace:         kctfmp-route
+Labels:            app=php-helloworld
+                   app.kubernetes.io/component=php-helloworld
+                   app.kubernetes.io/instance=php-helloworld
+Annotations:       openshift.io/generated-by: OpenShiftNewApp
+Selector:          deployment=php-helloworld
+Type:              ClusterIP
+IP:                172.30.109.178
+Port:              8080-tcp  8080/TCP
+TargetPort:        8080/TCP
+Endpoints:         10.131.2.84:8080
+Session Affinity:  None
+Events:            <none>
+[student@workstation dockerfile-create]$ 
+[student@workstation dockerfile-create]$ 
+[student@workstation dockerfile-create]$ oc expose svc/php-helloworld
+route.route.openshift.io/php-helloworld exposed
+[student@workstation dockerfile-create]$ 
+[student@workstation dockerfile-create]$ oc describe route
+Name:			php-helloworld
+Namespace:		kctfmp-route
+Created:		16 seconds ago
+Labels:			app=php-helloworld
+			app.kubernetes.io/component=php-helloworld
+			app.kubernetes.io/instance=php-helloworld
+Annotations:		openshift.io/host.generated=true
+Requested Host:		php-helloworld-kctfmp-route.apps.na46.prod.nextcle.com
+			   exposed on router default (host apps.na46.prod.nextcle.com) 16 seconds ago
+Path:			<none>
+TLS Termination:	<none>
+Insecure Policy:	<none>
+Endpoint Port:		8080-tcp
+
+Service:	php-helloworld
+Weight:		100 (100%)
+Endpoints:	10.131.2.84:8080
+[student@workstation dockerfile-create]$ 
+[student@workstation dockerfile-create]$ curl \
+> php-helloworld-${RHT_OCP4_DEV_USER}-route.${RHT_OCP4_WILDCARD_DOMAIN}
+Hello, World! PHP version is 7.2.11
+[student@workstation dockerfile-create]$ 
+[student@workstation dockerfile-create]$ 
+[student@workstation dockerfile-create]$ 
+[student@workstation dockerfile-create]$ oc delete route/php-helloworld
+route.route.openshift.io "php-helloworld" deleted
+[student@workstation dockerfile-create]$ 
+[student@workstation dockerfile-create]$ oc expose svc/php-helloworld \
+> --name=${RHT_OCP4_DEV_USER}-xyz
+route.route.openshift.io/kctfmp-xyz exposed
+[student@workstation dockerfile-create]$ 
+[student@workstation dockerfile-create]$ oc describe route
+Name:			kctfmp-xyz
+Namespace:		kctfmp-route
+Created:		14 seconds ago
+Labels:			app=php-helloworld
+			app.kubernetes.io/component=php-helloworld
+			app.kubernetes.io/instance=php-helloworld
+Annotations:		openshift.io/host.generated=true
+Requested Host:		kctfmp-xyz-kctfmp-route.apps.na46.prod.nextcle.com
+			   exposed on router default (host apps.na46.prod.nextcle.com) 14 seconds ago
+Path:			<none>
+TLS Termination:	<none>
+Insecure Policy:	<none>
+Endpoint Port:		8080-tcp
+
+Service:	php-helloworld
+Weight:		100 (100%)
+Endpoints:	10.131.2.84:8080
+[student@workstation dockerfile-create]$ 
+[student@workstation dockerfile-create]$ curl \
+> ${RHT_OCP4_DEV_USER}-xyz-${RHT_OCP4_DEV_USER}-route.${RHT_OCP4_WILDCARD_DOMAIN}
+Hello, World! PHP version is 7.2.11
+[student@workstation dockerfile-create]$ 
+[student@workstation dockerfile-create]$ echo ${RHT_OCP4_DEV_USER}-xyz-${RHT_OCP4_DEV_USER}-route.${RHT_OCP4_WILDCARD_DOMAIN}
+kctfmp-xyz-kctfmp-route.apps.na46.prod.nextcle.com
+[student@workstation dockerfile-create]$ 
+[student@workstation dockerfile-create]$ nslookup kctfmp-xyz-kctfmp-route.apps.na46.prod.nextcle.com
+Server:		172.25.250.254
+Address:	172.25.250.254#53
+
+Non-authoritative answer:
+Name:	kctfmp-xyz-kctfmp-route.apps.na46.prod.nextcle.com
+Address: 52.118.39.148
+
+[student@workstation dockerfile-create]$ 
+

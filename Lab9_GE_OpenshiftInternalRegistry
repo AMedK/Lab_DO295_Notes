@@ -1,0 +1,156 @@
+[student@workstation DO288-apps]$ lab expose-registry start
+
+Checking prerequisites for GE: Using the OpenShift Registry
+
+ Verifying the OpenShift cluster is running:
+ · Log in on OpenShift.........................................  SUCCESS
+ · Check master node na46-jffdq-master-0 is ready..............  SUCCESS
+ · Check master node na46-jffdq-master-1 is ready..............  SUCCESS
+ · Check master node na46-jffdq-master-2 is ready..............  SUCCESS
+ · Check the internal registry is up and running...............  SUCCESS
+ Checking required artifacts:
+ · OCI container image 'ubi-info' is available.................  SUCCESS
+ Checking for conflicts with existing OpenShift projects:
+ · Project 'kctfmp-common' is absent...........................  SUCCESS
+ Checking for conflicts with existing local containers:
+ · Container 'info' is absent..................................  SUCCESS
+
+Setting up the classroom for GE: Using the OpenShift Registry
+
+ · Download exercise files.....................................  SUCCESS
+ · Download solution files.....................................  SUCCESS
+ · Download OCI container image folder 'ubi-info'..............  SUCCESS
+
+Overall start status...........................................  SUCCESS
+
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ source /usr/local/etc/ocp4.config
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ oc login -u ${RHT_OCP4_DEV_USER} \
+> -p ${RHT_OCP4_DEV_PASSWORD} ${RHT_OCP4_MASTER_API}
+Login successful.
+
+You have one project on this server: "kctfmp-s2i"
+
+Using project "kctfmp-s2i".
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ oc get route -n openshift-image-registry
+NAME            HOST/PORT                                                           PATH   SERVICES         PORT    TERMINATION   WILDCARD
+default-route   default-route-openshift-image-registry.apps.na46.prod.nextcle.com          image-registry   <all>   reencrypt     None
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ INTERNAL_REGISTRY=$( oc get route default-route \
+> -n openshift-image-registry -o jsonpath='{.spec.host}' )
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ echo $INTERNAL_REGISTRY
+default-route-openshift-image-registry.apps.na46.prod.nextcle.com
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ oc new-project ${RHT_OCP4_DEV_USER}-common
+Now using project "kctfmp-common" on server "https://api.na46.prod.nextcle.com:6443".
+
+You can add applications to this project with the 'new-app' command. For example, try:
+
+    oc new-app rails-postgresql-example
+
+to build a new example application in Ruby. Or use kubectl to deploy a simple Kubernetes application:
+
+    kubectl create deployment hello-node --image=k8s.gcr.io/serve_hostname
+
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ TOKEN=$(oc whoami -t)
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ echo $TOKEN
+sha256~y06mL79hyt8fIDzQ2rgRbwAPLoAl-qO_mcJ0jXILzpM
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ ls ~/DO288/labs/expose-registry/ubi-info
+blobs  index.json  oci-layout
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ skopeo copy \
+> --dest-creds=${RHT_OCP4_DEV_USER}:${TOKEN} \
+> oci:/home/student/DO288/labs/expose-registry/ubi-info \
+> docker://${INTERNAL_REGISTRY}/${RHT_OCP4_DEV_USER}-common/ubi-info:1.0
+Getting image source signatures
+Copying blob 787f47dbeaac done  
+Copying blob 6a5240d60dc4 done  
+Copying blob 6286544f607c done  
+Copying blob 4f4fb700ef54 done  
+Copying config 35de0dda82 done  
+Writing manifest to image destination
+Copying config 35de0dda82 [======================================] 2.3KiB / 2.3KiB
+Writing manifest to image destination
+Storing signatures
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ oc get is
+NAME       IMAGE REPOSITORY                                                                           TAGS   UPDATED
+ubi-info   default-route-openshift-image-registry.apps.na46.prod.nextcle.com/kctfmp-common/ubi-info   1.0    16 seconds ago
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ podman login -u ${RHT_OCP4_DEV_USER} \
+> -p ${TOKEN} ${INTERNAL_REGISTRY}
+Login Succeeded!
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ podman pull \
+> ${INTERNAL_REGISTRY}/${RHT_OCP4_DEV_USER}-common/ubi-info:1.0
+Trying to pull default-route-openshift-image-registry.apps.na46.prod.nextcle.com/kctfmp-common/ubi-info:1.0...
+Getting image source signatures
+Copying blob 4f4fb700ef54 skipped: already exists  
+Copying blob 787f47dbeaac skipped: already exists  
+Copying blob 6a5240d60dc4 skipped: already exists  
+Copying blob 6286544f607c done  
+Copying config 35de0dda82 done  
+Writing manifest to image destination
+Storing signatures
+35de0dda82a8572fe506aa54634f209464df5c05b5d9b955557db10bd86a4fc5
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ podman run --name info \
+> ${INTERNAL_REGISTRY}/${RHT_OCP4_DEV_USER}-common/ubi-info:1.0
+--- Host name:
+47ec2ac1444b
+
+--- Free memory
+MemTotal:        5890712 kB
+MemFree:         3280424 kB
+MemAvailable:    4466848 kB
+
+--- Mounted file systems (partial)
+Filesystem      Size  Used Avail Use% Mounted on
+fuse-overlayfs  9.9G  6.3G  3.7G  63% /
+tmpfs            64M     0   64M   0% /dev
+tmpfs           576M  440K  575M   1% /etc/hosts
+shm              63M     0   63M   0% /dev/shm
+tmpfs           2.9G     0  2.9G   0% /sys/fs/cgroup
+devtmpfs        2.8G     0  2.8G   0% /dev/tty
+tmpfs           2.9G     0  2.9G   0% /proc/acpi
+tmpfs           2.9G     0  2.9G   0% /proc/scsi
+tmpfs           2.9G     0  2.9G   0% /sys/firmware
+tmpfs           2.9G     0  2.9G   0% /sys/fs/selinux
+tmpfs           2.9G     0  2.9G   0% /sys/dev/block
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ oc delete is ubi-info
+imagestream.image.openshift.io "ubi-info" deleted
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ oc delete project ${RHT_OCP4_DEV_USER}-common
+project.project.openshift.io "kctfmp-common" deleted
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ podman rm info
+47ec2ac1444b45985c2793e378f0c708d6b3b833735f5b5ff7aa4018f231832a
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ podman rmi -f \
+> ${INTERNAL_REGISTRY}/${RHT_OCP4_DEV_USER}-common/ubi-info:1.0
+Untagged: default-route-openshift-image-registry.apps.na46.prod.nextcle.com/kctfmp-common/ubi-info:1.0
+Deleted: 35de0dda82a8572fe506aa54634f209464df5c05b5d9b955557db10bd86a4fc5
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ lab expose-registry finish
+
+Completing GE: Using the OpenShift Registry
+
+ · Log in on OpenShift.........................................  SUCCESS
+ · Remove exercise files.......................................  SUCCESS
+ · Remove solution files.......................................  SUCCESS
+
+Please use start if you wish to do the exercise again.
+
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ 
+

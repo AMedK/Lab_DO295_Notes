@@ -1,0 +1,331 @@
+[student@workstation DO288-apps]$ lab app-config start
+
+Checking prerequisites for Guided Exercise: Injecting Configuration Data into an Application
+
+ Checking local clone of the applications repository:
+ · Folder '/home/student/DO288-apps' is a git repo.............  SUCCESS
+ · Git repo '/home/student/DO288-apps' has no pending changes..  SUCCESS
+ Verifying the OpenShift cluster is running:
+ · Log in on OpenShift.........................................  SUCCESS
+ · Check master node na46-jffdq-master-0 is ready..............  SUCCESS
+ · Check master node na46-jffdq-master-1 is ready..............  SUCCESS
+ · Check master node na46-jffdq-master-2 is ready..............  SUCCESS
+ · Check the internal registry is up and running...............  SUCCESS
+ Checking required artifacts:
+ · Project 'app-config' exists in student's GitHub fork........  SUCCESS
+ · Module 'nodejs' exists in classroom's Nexus.................  SUCCESS
+ Checking for conflicts with existing OpenShift projects:
+ · Project 'kctfmp-app-config' is absent.......................  SUCCESS
+
+Setting up the classroom for Guided Exercise: Injecting Configuration Data into an Application
+
+ · Download exercise files.....................................  SUCCESS
+ · Download solution files.....................................  SUCCESS
+
+Overall start status...........................................  SUCCESS
+
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ git checkout main
+Switched to branch 'main'
+Your branch is up to date with 'origin/main'.
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ git checkout -b app-config
+Switched to a new branch 'app-config'
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ git push -u origin app-config
+Gtk-Message: 14:31:37.893: Failed to load module "canberra-gtk-module"
+Gtk-Message: 14:31:47.104: Failed to load module "canberra-gtk-module"
+Total 0 (delta 0), reused 0 (delta 0), pack-reused 0
+To https://github.com/whynot108/DO288-apps.git
+   20d7733..f355431  app-config -> app-config
+Branch 'app-config' set up to track remote branch 'app-config' from 'origin'.
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ source /usr/local/etc/ocp4.config
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ oc login -u ${RHT_OCP4_DEV_USER} \
+> -p ${RHT_OCP4_DEV_PASSWORD} ${RHT_OCP4_MASTER_API}
+Login successful.
+
+You have one project on this server: "kctfmp-s2i"
+
+Using project "kctfmp-s2i".
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ oc new-project ${RHT_OCP4_DEV_USER}-app-config
+Now using project "kctfmp-app-config" on server "https://api.na46.prod.nextcle.com:6443".
+
+You can add applications to this project with the 'new-app' command. For example, try:
+
+    oc new-app rails-postgresql-example
+
+to build a new example application in Ruby. Or use kubectl to deploy a simple Kubernetes application:
+
+    kubectl create deployment hello-node --image=k8s.gcr.io/serve_hostname
+
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ oc new-app --name myapp --build-env \
+> npm_config_registry=http://${RHT_OCP4_NEXUS_SERVER}/repository/nodejs \
+> nodejs:12~https://github.com/${RHT_OCP4_GITHUB_USER}/DO288-apps#app-config \
+> --context-dir app-config
+--> Found image 1ad9bd1 (2 months old) in image stream "openshift/nodejs" under tag "12" for "nodejs:12"
+
+    Node.js 12 
+    ---------- 
+    Node.js 12 available as container is a base platform for building and running various Node.js 12 applications and frameworks. Node.js is a platform built on Chrome's JavaScript runtime for easily building fast, scalable network applications. Node.js uses an event-driven, non-blocking I/O model that makes it lightweight and efficient, perfect for data-intensive real-time applications that run across distributed devices.
+
+    Tags: builder, nodejs, nodejs12
+
+    * A source build using source code from https://github.com/whynot108/DO288-apps#app-config will be created
+      * The resulting image will be pushed to image stream tag "myapp:latest"
+      * Use 'oc start-build' to trigger a new build
+
+--> Creating resources ...
+    imagestream.image.openshift.io "myapp" created
+    buildconfig.build.openshift.io "myapp" created
+    deployment.apps "myapp" created
+    service "myapp" created
+--> Success
+    Build scheduled, use 'oc logs -f buildconfig/myapp' to track its progress.
+    Application is not exposed. You can expose services to the outside world by executing one or more of the commands below:
+     'oc expose service/myapp' 
+    Run 'oc status' to view your app.
+[student@workstation DO288-apps]$ 
+    service "myapp" created
+--> Success
+    Build scheduled, use 'oc logs -f buildconfig/myapp' to track its progress.
+    Application is not exposed. You can expose services to the outside world by executing one or more of the commands below:
+     'oc expose service/myapp' 
+    Run 'oc status' to view your app.
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ oc get pods
+NAME                     READY   STATUS      RESTARTS   AGE
+myapp-1-build            0/1     Completed   0          3m3s
+myapp-5dfb577665-4fgnb   1/1     Running     0          2m27s
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ oc expose svc myapp
+route.route.openshift.io/myapp exposed
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ oc get route
+NAME    HOST/PORT                                            PATH   SERVICES   PORT       TERMINATION   WILDCARD
+myapp   myapp-kctfmp-app-config.apps.na46.prod.nextcle.com          myapp      8080-tcp                 None
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ curl \
+> http://myapp-${RHT_OCP4_DEV_USER}-app-config.${RHT_OCP4_WILDCARD_DOMAIN}
+Value in the APP_MSG env var is => undefined
+Error: ENOENT: no such file or directory, open '/opt/app-root/secure/myapp.sec'
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ oc create configmap myappconf \
+> --from-literal APP_MSG="Test Message"
+configmap/myappconf created
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ oc describe cm/myappconf
+Name:         myappconf
+Namespace:    kctfmp-app-config
+Labels:       <none>
+Annotations:  <none>
+
+Data
+====
+APP_MSG:
+----
+Test Message
+Events:  <none>
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ oc create secret generic myappfilesec \
+> --from-file /home/student/DO288-apps/app-config/myapp.sec
+secret/myappfilesec created
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ oc get secret/myappfilesec -o json
+{
+    "apiVersion": "v1",
+    "data": {
+        "myapp.sec": "dXNlcm5hbWU9dXNlcjEKcGFzc3dvcmQ9cGFzczEKc2FsdD14eXoxMjMK"
+    },
+    "kind": "Secret",
+    "metadata": {
+        "creationTimestamp": "2022-02-16T19:41:24Z",
+        "managedFields": [
+            {
+                "apiVersion": "v1",
+                "fieldsType": "FieldsV1",
+                "fieldsV1": {
+                    "f:data": {
+                        ".": {},
+                        "f:myapp.sec": {}
+                    },
+                    "f:type": {}
+                },
+                "manager": "kubectl-create",
+                "operation": "Update",
+                "time": "2022-02-16T19:41:24Z"
+            }
+        ],
+        "name": "myappfilesec",
+        "namespace": "kctfmp-app-config",
+        "resourceVersion": "25866535",
+        "selfLink": "/api/v1/namespaces/kctfmp-app-config/secrets/myappfilesec",
+        "uid": "76566dd4-2d1e-4ca2-9ef2-38812dc3164c"
+    },
+    "type": "Opaque"
+}
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ oc set env deployment/myapp \
+> --from configmap/myappconf
+deployment.apps/myapp updated
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ oc set volume deployment/myapp --add \
+> -t secret -m /opt/app-root/secure \
+> --name myappsec-vol --secret-name myappfilesec
+deployment.apps/myapp volume updated
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ oc status
+In project kctfmp-app-config on server https://api.na46.prod.nextcle.com:6443
+
+http://myapp-kctfmp-app-config.apps.na46.prod.nextcle.com to pod port 8080-tcp (svc/myapp)
+  deployment/myapp deploys istag/myapp:latest <-
+    bc/myapp source builds https://github.com/whynot108/DO288-apps#app-config on openshift/nodejs:12 
+    deployment #4 running for 14 seconds - 1 pod
+    deployment #3 deployed about a minute ago
+    deployment #2 deployed 7 minutes ago
+    deployment #1 deployed 8 minutes ago
+
+
+1 info identified, use 'oc status --suggest' to see details.
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ oc get pods
+NAME                     READY   STATUS        RESTARTS   AGE
+myapp-1-build            0/1     Completed     0          8m38s
+myapp-577d94fd64-46bn6   1/1     Running       0          31s
+myapp-5dfb577665-4fgnb   1/1     Terminating   0          8m2s
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ oc rsh myapp-577d94fd64-46bn6 env | grep APP_MSG
+APP_MSG=Test Message
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ curl \
+> http://myapp-${RHT_OCP4_DEV_USER}-app-config.${RHT_OCP4_WILDCARD_DOMAIN}
+Value in the APP_MSG env var is => Test Message
+The secret is => username=user1
+password=pass1
+salt=xyz123
+
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ oc edit cm/myappconf
+configmap/myappconf edited
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ oc describe cm/myappconf
+Name:         myappconf
+Namespace:    kctfmp-app-config
+Labels:       <none>
+Annotations:  <none>
+
+Data
+====
+APP_MSG:
+----
+Changed Test Message
+Events:  <none>
+[student@workstation DO288-apps]$ oc get pods
+NAME                     READY   STATUS        RESTARTS   AGE
+myapp-1-build            0/1     Completed     0          13m
+myapp-577d94fd64-46bn6   1/1     Running       0          5m33s
+myapp-5dfb577665-4fgnb   1/1     Terminating   0          13m
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ oc delete pod myapp-577d94fd64-46bn6
+pod "myapp-577d94fd64-46bn6" deleted
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ oc get pods
+NAME                     READY   STATUS        RESTARTS   AGE
+myapp-1-build            0/1     Completed     0          14m
+myapp-577d94fd64-z8r62   1/1     Running       0          16s
+myapp-5dfb577665-4fgnb   1/1     Terminating   0          13m
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ curl \
+> http://myapp-${RHT_OCP4_DEV_USER}-app-config.${RHT_OCP4_WILDCARD_DOMAIN}
+Value in the APP_MSG env var is => Changed Test Message
+The secret is => username=user1
+password=pass1
+salt=xyz123
+
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ oc exec -it myapp-577d94fd64-z8r62 -- /bin/sh
+sh-4.2$ 
+sh-4.2$ df -h
+Filesystem                            Size  Used Avail Use% Mounted on
+overlay                               100G   64G   36G  64% /
+tmpfs                                  64M     0   64M   0% /dev
+tmpfs                                  12G     0   12G   0% /sys/fs/cgroup
+shm                                    64M     0   64M   0% /dev/shm
+tmpfs                                  12G   98M   12G   1% /etc/passwd
+/dev/mapper/coreos-luks-root-nocrypt  100G   64G   36G  64% /etc/hosts
+tmpfs                                  12G  4.0K   12G   1% /opt/app-root/secure
+tmpfs                                  12G   32K   12G   1% /run/secrets/kubernetes.io/serviceaccount
+tmpfs                                  12G     0   12G   0% /proc/acpi
+tmpfs                                  12G     0   12G   0% /proc/scsi
+tmpfs                                  12G     0   12G   0% /sys/firmware
+sh-4.2$ 
+
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ oc get deploy
+NAME    READY   UP-TO-DATE   AVAILABLE   AGE
+myapp   1/1     1            1           23m
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ oc describe deploy/myapp
+Name:                   myapp
+Namespace:              kctfmp-app-config
+CreationTimestamp:      Wed, 16 Feb 2022 14:34:57 -0500
+Labels:                 app=myapp
+                        app.kubernetes.io/component=myapp
+                        app.kubernetes.io/instance=myapp
+Annotations:            deployment.kubernetes.io/revision: 4
+                        image.openshift.io/triggers:
+                          [{"from":{"kind":"ImageStreamTag","name":"myapp:latest"},"fieldPath":"spec.template.spec.containers[?(@.name==\"myapp\")].image"}]
+                        openshift.io/generated-by: OpenShiftNewApp
+Selector:               deployment=myapp
+Replicas:               1 desired | 1 updated | 1 total | 1 available | 0 unavailable
+StrategyType:           RollingUpdate
+MinReadySeconds:        0
+RollingUpdateStrategy:  25% max unavailable, 25% max surge
+Pod Template:
+  Labels:       deployment=myapp
+  Annotations:  openshift.io/generated-by: OpenShiftNewApp
+  Containers:
+   myapp:
+    Image:      image-registry.openshift-image-registry.svc:5000/kctfmp-app-config/myapp@sha256:e705f17cf866d1f45c3dfaab1ba1db0d72ed9d4be00c0427f09a47419e00a9c2
+    Port:       8080/TCP
+    Host Port:  0/TCP
+    Environment:
+      APP_MSG:  <set to the key 'APP_MSG' of config map 'myappconf'>  Optional: false
+    Mounts:
+      /opt/app-root/secure from myappsec-vol (rw)
+  Volumes:
+   myappsec-vol:
+    Type:        Secret (a volume populated by a Secret)
+    SecretName:  myappfilesec
+    Optional:    false
+Conditions:
+  Type           Status  Reason
+  ----           ------  ------
+  Progressing    True    NewReplicaSetAvailable
+  Available      True    MinimumReplicasAvailable
+OldReplicaSets:  <none>
+NewReplicaSet:   myapp-577d94fd64 (1/1 replicas created)
+Events:
+  Type    Reason             Age   From                   Message
+  ----    ------             ----  ----                   -------
+  Normal  ScalingReplicaSet  24m   deployment-controller  Scaled up replica set myapp-8f8cc4645 to 1
+  Normal  ScalingReplicaSet  23m   deployment-controller  Scaled up replica set myapp-5dfb577665 to 1
+  Normal  ScalingReplicaSet  23m   deployment-controller  Scaled down replica set myapp-8f8cc4645 to 0
+  Normal  ScalingReplicaSet  16m   deployment-controller  Scaled up replica set myapp-5c76b89cff to 1
+  Normal  ScalingReplicaSet  16m   deployment-controller  Scaled down replica set myapp-5dfb577665 to 0
+  Normal  ScalingReplicaSet  16m   deployment-controller  Scaled up replica set myapp-577d94fd64 to 1
+  Normal  ScalingReplicaSet  16m   deployment-controller  Scaled down replica set myapp-5c76b89cff to 0
+[student@workstation DO288-apps]$ 
+

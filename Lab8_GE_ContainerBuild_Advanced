@@ -1,0 +1,369 @@
+[student@workstation ~]$ lab container-build start
+
+Checking prerequisites for Guided Exercise: Building Container Images
+
+ Checking local clone of the applications repository:
+ · Folder '/home/student/DO288-apps' is a git repo.............  SUCCESS
+ · Git repo '/home/student/DO288-apps' has no pending changes..  SUCCESS
+ Verifying the OpenShift cluster is running:
+ · Log in on OpenShift.........................................  SUCCESS
+ · Check master node na46-jffdq-master-0 is ready..............  SUCCESS
+ · Check master node na46-jffdq-master-1 is ready..............  SUCCESS
+ · Check master node na46-jffdq-master-2 is ready..............  SUCCESS
+ · Check the internal registry is up and running...............  SUCCESS
+ Checking required artifacts:
+ · Image 'redhattraining/httpd-parent' is available............  SUCCESS
+ Checking for conflicts with existing OpenShift projects:
+ · Project 'kctfmp-container-build' is absent..................  SUCCESS
+
+Setting up the classroom for Guided Exercise: Building Container Images
+
+ · Download exercise files.....................................  SUCCESS
+ · Download solution files.....................................  SUCCESS
+
+Overall start status...........................................  SUCCESS
+
+[student@workstation ~]$ 
+[student@workstation ~]$ 
+[student@workstation ~]$ cat ~/DO288/labs/container-build/httpd-parent/Containerfile
+FROM registry.access.redhat.com/ubi8/ubi:8.0
+
+MAINTAINER Red Hat Training <training@redhat.com>
+
+# DocumentRoot for Apache
+ENV DOCROOT=/var/www/html 
+
+
+RUN   yum install -y --nodocs --disableplugin=subscription-manager httpd && \
+      yum clean all --disableplugin=subscription-manager -y && \
+      echo "Hello from the httpd-parent container!" > ${DOCROOT}/index.html
+
+# Allows child images to inject their own content into DocumentRoot
+ONBUILD COPY src/ ${DOCROOT}/
+
+EXPOSE 80
+
+# This stuff is needed to ensure a clean start
+RUN rm -rf /run/httpd && mkdir /run/httpd
+
+# Run as the root user
+USER root
+
+# Launch httpd
+CMD /usr/sbin/httpd -DFOREGROUND
+[student@workstation ~]$ 
+[student@workstation ~]$ 
+[student@workstation ~]$ source /usr/local/etc/ocp4.config
+[student@workstation ~]$ 
+[student@workstation ~]$ cd DO288-apps
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ git checkout main
+Already on 'main'
+Your branch is up to date with 'origin/main'.
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ git checkout -b container-build
+Switched to a new branch 'container-build'
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ git push -u origin container-build
+Gtk-Message: 13:11:00.314: Failed to load module "canberra-gtk-module"
+Gtk-Message: 13:11:08.862: Failed to load module "canberra-gtk-module"
+Total 0 (delta 0), reused 0 (delta 0), pack-reused 0
+remote: 
+remote: Create a pull request for 'container-build' on GitHub by visiting:
+remote:      https://github.com/whynot108/DO288-apps/pull/new/container-build
+remote: 
+To https://github.com/whynot108/DO288-apps.git
+ * [new branch]      container-build -> container-build
+Branch 'container-build' set up to track remote branch 'container-build' from 'origin'.
+[student@workstation DO288-apps]$ 
+student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ cat ~/DO288-apps/container-build/Containerfile
+# Use the httpd-parent image as base
+FROM quay.io/redhattraining/httpd-parent
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ oc login -u ${RHT_OCP4_DEV_USER} \
+> -p ${RHT_OCP4_DEV_PASSWORD} ${RHT_OCP4_MASTER_API}
+Login successful.
+
+You have one project on this server: "kctfmp-s2i"
+
+Using project "kctfmp-s2i".
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ oc new-project \
+> ${RHT_OCP4_DEV_USER}-container-build
+Now using project "kctfmp-container-build" on server "https://api.na46.prod.nextcle.com:6443".
+
+You can add applications to this project with the 'new-app' command. For example, try:
+
+    oc new-app rails-postgresql-example
+
+to build a new example application in Ruby. Or use kubectl to deploy a simple Kubernetes application:
+
+    kubectl create deployment hello-node --image=k8s.gcr.io/serve_hostname
+
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ podman build --layers=false \
+> -t do288-apache ./container-build
+STEP 1: FROM quay.io/redhattraining/httpd-parent
+Getting image source signatures
+Copying blob 6a5240d60dc4 done  
+Copying blob a3ed95caeb02 done  
+Copying blob a3ed95caeb02 done  
+Copying blob a3ed95caeb02 done  
+Copying blob 787f47dbeaac done  
+Copying blob 08b8c9fdec44 done  
+Copying blob a3ed95caeb02 skipped: already exists  
+Copying blob a3ed95caeb02 skipped: already exists  
+Copying blob a3ed95caeb02 skipped: already exists  
+Copying blob 408208567b9a done  
+Writing manifest to image destination
+Storing signatures
+STEP 2: COPY src/ ${DOCROOT}/
+STEP 3: COMMIT do288-apache
+Getting image source signatures
+Copying blob 24d85c895b6b skipped: already exists  
+Copying blob c613b100be16 skipped: already exists  
+Copying blob 574bcc187eda skipped: already exists  
+Copying blob 7f9108fde4a1 skipped: already exists  
+Copying blob 22f00bc1d52f done  
+Copying config 69a5bfa5b1 done  
+Writing manifest to image destination
+Storing signatures
+--> 69a5bfa5b15
+69a5bfa5b151d475150ab8e1cff642a3c1cf0fdd876681721ac4fdbb8e1df34d
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ podman images
+REPOSITORY                           TAG     IMAGE ID      CREATED             SIZE
+localhost/do288-apache               latest  69a5bfa5b151  About a minute ago  236 MB
+quay.io/redhattraining/httpd-parent  latest  4346d3cace25  2 years ago         236 MB
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ podman tag do288-apache \
+> quay.io/${RHT_OCP4_QUAY_USER}/do288-apache
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ podman login quay.io -u ${RHT_OCP4_QUAY_USER}
+Password: 
+Login Succeeded!
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ podman push \
+> quay.io/${RHT_OCP4_QUAY_USER}/do288-apache
+Getting image source signatures
+Copying blob 22f00bc1d52f [--------------------------------------] 8.0b / 3.5KiB
+Copying blob c613b100be16 skipped: already exists  
+Copying blob 24d85c895b6b skipped: already exists  
+Copying blob 7f9108fde4a1 skipped: already exists  
+Copying blob 574bcc187eda [--------------------------------------] 0.0b / 0.0b
+Error: error copying image to the remote destination: Error writing blob: Error initiating layer upload to /v2/andrew_xu/do288-apache/blobs/uploads/ in quay.io: unauthorized: access to the requested resource is not authorized
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ podman push quay.io/${RHT_OCP4_QUAY_USER}/do288-apache
+Getting image source signatures
+Copying blob 22f00bc1d52f done  
+Copying blob 7f9108fde4a1 skipped: already exists  
+Copying blob 574bcc187eda skipped: already exists  
+Copying blob c613b100be16 skipped: already exists  
+Copying blob 24d85c895b6b skipped: already exists  
+Copying config 69a5bfa5b1 done  
+Writing manifest to image destination
+Copying config 69a5bfa5b1 [--------------------------------------] 0.0b / 4.3KiB
+Writing manifest to image destination
+Storing signatures
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ oc new-app --name hola \
+> quay.io/${RHT_OCP4_QUAY_USER}/do288-apache
+--> Found container image 69a5bfa (13 minutes old) from quay.io for "quay.io/andrew_xu/do288-apache"
+
+    Red Hat Universal Base Image 8 
+    ------------------------------ 
+    The Universal Base Image is designed and engineered to be the base layer for all of your containerized applications, middleware and utilities. This base image is freely redistributable, but Red Hat only supports Red Hat technologies through subscriptions for Red Hat products. This image is maintained by Red Hat and updated regularly.
+
+    Tags: base rhel8
+
+    * An image stream tag will be created as "hola:latest" that will track this image
+
+--> Creating resources ...
+    imagestream.image.openshift.io "hola" created
+    deployment.apps "hola" created
+    service "hola" created
+--> Success
+    Application is not exposed. You can expose services to the outside world by executing one or more of the commands below:
+     'oc expose service/hola' 
+    Run 'oc status' to view your app.
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ oc get pods
+NAME                    READY   STATUS             RESTARTS   AGE
+hola-745dc4ddf8-4fp8v   0/1     CrashLoopBackOff   1          21s
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ oc logs hola-745dc4ddf8-4fp8v
+AH00558: httpd: Could not reliably determine the server's fully qualified domain name, using 10.129.2.202. Set the 'ServerName' directive globally to suppress this message
+(13)Permission denied: AH00072: make_sock: could not bind to address [::]:80
+(13)Permission denied: AH00072: make_sock: could not bind to address 0.0.0.0:80
+no listening sockets available, shutting down
+AH00015: Unable to open logs
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ oc delete all -l app=hola
+service "hola" deleted
+deployment.apps "hola" deleted
+imagestream.image.openshift.io "hola" deleted
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ vi [student@workstation DO288-apps]$ oc get pods
+5 files to edit
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ vi ~/DO288-apps/container-build/Containerfile
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ cd container-build/
+[student@workstation container-build]$ 
+[student@workstation container-build]$ git commit -a -m \
+> "Changed the Containerfile to enable running as a random uid on OpenShift"
+[container-build 49c19ab] Changed the Containerfile to enable running as a random uid on OpenShift
+ 1 file changed, 15 insertions(+)
+[student@workstation container-build]$ 
+[student@workstation container-build]$ git push
+Gtk-Message: 13:37:23.439: Failed to load module "canberra-gtk-module"
+Gtk-Message: 13:37:35.225: Failed to load module "canberra-gtk-module"
+Enumerating objects: 7, done.
+Counting objects: 100% (7/7), done.
+Delta compression using up to 2 threads
+Compressing objects: 100% (4/4), done.
+Writing objects: 100% (4/4), 715 bytes | 715.00 KiB/s, done.
+Total 4 (delta 1), reused 0 (delta 0), pack-reused 0
+remote: Resolving deltas: 100% (1/1), completed with 1 local object.
+To https://github.com/whynot108/DO288-apps.git
+   f355431..49c19ab  container-build -> container-build
+[student@workstation container-build]$ 
+[student@workstation container-build]$ 
+[student@workstation container-build]$ cd ..
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ cd 
+[student@workstation ~]$ 
+[student@workstation ~]$ podman rmi -a --force
+Untagged: quay.io/redhattraining/httpd-parent:latest
+Untagged: localhost/do288-apache:latest
+Untagged: quay.io/andrew_xu/do288-apache:latest
+Deleted: 4346d3cace25776120260d3bfadb82dcde503b8bf1d52ccf0a65848eb6852d3b
+Deleted: 69a5bfa5b151d475150ab8e1cff642a3c1cf0fdd876681721ac4fdbb8e1df34d
+[student@workstation ~]$ 
+[student@workstation ~]$ podman build --layers=false \
+> -t do288-apache ./container-build
+Error: context must be a directory: "/home/student/container-build"
+[student@workstation ~]$ cd DO288-apps/
+[student@workstation DO288-apps]$ podman build --layers=false -t do288-apache ./container-build
+STEP 1: FROM quay.io/redhattraining/httpd-parent
+Getting image source signatures
+Copying blob a3ed95caeb02 done  
+Copying blob 6a5240d60dc4 done  
+Copying blob a3ed95caeb02 done  
+Copying blob 08b8c9fdec44 done  
+Copying blob 787f47dbeaac done  
+Copying blob a3ed95caeb02 done  
+Copying blob a3ed95caeb02 skipped: already exists  
+Copying blob a3ed95caeb02 skipped: already exists  
+Copying blob a3ed95caeb02 skipped: already exists  
+Copying blob 408208567b9a done  
+Writing manifest to image destination
+Storing signatures
+STEP 2: COPY src/ ${DOCROOT}/
+STEP 3: EXPOSE 8080
+STEP 4: LABEL io.k8s.description="A basic Apache HTTP Server child image, uses ONBUILD"       io.k8s.display-name="Apache HTTP Server"       io.openshift.expose-services="8080:http"       io.openshift.tags="apache, httpd"
+STEP 5: RUN sed -i "s/Listen 80/Listen 8080/g" /etc/httpd/conf/httpd.conf
+STEP 6: RUN sed -i "s/#ServerName www.example.com:80/ServerName 0.0.0.0:8080/g" /etc/httpd/conf/httpd.conf
+STEP 7: RUN chgrp -R 0 /var/log/httpd /var/run/httpd &&     chmod -R g=u /var/log/httpd /var/run/httpd
+STEP 8: USER 1001
+STEP 9: COMMIT do288-apache
+Getting image source signatures
+Copying blob 24d85c895b6b skipped: already exists  
+Copying blob c613b100be16 skipped: already exists  
+Copying blob 574bcc187eda skipped: already exists  
+Copying blob 7f9108fde4a1 skipped: already exists  
+Copying blob 605b7a8efc05 done  
+Copying config b181a0e9f3 done  
+Writing manifest to image destination
+Storing signatures
+--> b181a0e9f37
+b181a0e9f37ee2cc5519c81004c0e59121b083749397aff148a68475cc4a3cda
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ podman tag do288-apache \
+> quay.io/${RHT_OCP4_QUAY_USER}/do288-apache
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ podman images
+REPOSITORY                           TAG     IMAGE ID      CREATED             SIZE
+localhost/do288-apache               latest  b181a0e9f37e  About a minute ago  236 MB
+quay.io/andrew_xu/do288-apache       latest  b181a0e9f37e  About a minute ago  236 MB
+quay.io/redhattraining/httpd-parent  latest  4346d3cace25  2 years ago         236 MB
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ podman push \
+> quay.io/${RHT_OCP4_QUAY_USER}/do288-apache
+Getting image source signatures
+Copying blob 605b7a8efc05 done  
+Copying blob 574bcc187eda skipped: already exists  
+Copying blob 24d85c895b6b skipped: already exists  
+Copying blob c613b100be16 skipped: already exists  
+Copying blob 7f9108fde4a1 skipped: already exists  
+Copying config b181a0e9f3 done  
+Writing manifest to image destination
+Copying config b181a0e9f3 [--------------------------------------] 0.0b / 5.0KiB
+Writing manifest to image destination
+Storing signatures
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ oc new-app --name hola \
+> quay.io/${RHT_OCP4_QUAY_USER}/do288-apache
+--> Found container image b181a0e (2 minutes old) from quay.io for "quay.io/andrew_xu/do288-apache"
+
+    Apache HTTP Server 
+    ------------------ 
+    A basic Apache HTTP Server child image, uses ONBUILD
+
+    Tags: apache,  httpd
+
+    * An image stream tag will be created as "hola:latest" that will track this image
+
+--> Creating resources ...
+    imagestream.image.openshift.io "hola" created
+    deployment.apps "hola" created
+    service "hola" created
+--> Success
+    Application is not exposed. You can expose services to the outside world by executing one or more of the commands below:
+     'oc expose service/hola' 
+    Run 'oc status' to view your app.
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ oc status
+In project kctfmp-container-build on server https://api.na46.prod.nextcle.com:6443
+
+svc/hola - 172.30.44.8 ports 80, 8080
+  deployment/hola deploys istag/hola:latest 
+    deployment #2 running for 10 seconds - 1 pod
+    deployment #1 deployed 11 seconds ago
+
+
+1 info identified, use 'oc status --suggest' to see details.
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ oc get pods
+NAME                    READY   STATUS    RESTARTS   AGE
+hola-5fddbcbb47-wh77c   1/1     Running   0          17s
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ oc expose --port='8080' svc/hola
+route.route.openshift.io/hola exposed
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ oc get route
+NAME   HOST/PORT                                                PATH   SERVICES   PORT   TERMINATION   WILDCARD
+hola   hola-kctfmp-container-build.apps.na46.prod.nextcle.com          hola       8080                 None
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ curl \
+> http://hola-${RHT_OCP4_DEV_USER}-container-build.${RHT_OCP4_WILDCARD_DOMAIN}
+<!DOCTYPE html>
+<html>
+<body>
+  Hello from the Apache child container!
+</body>
+</html>
+[student@workstation DO288-apps]$ 
+

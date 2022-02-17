@@ -1,0 +1,277 @@
+[student@workstation DO288-apps]$ lab external-registry start
+
+Checking prerequisites for GE: Using an External Registry
+
+ Verifying the OpenShift cluster is running:
+ · Log in on OpenShift.........................................  SUCCESS
+ · Check master node na46-jffdq-master-0 is ready..............  SUCCESS
+ · Check master node na46-jffdq-master-1 is ready..............  SUCCESS
+ · Check master node na46-jffdq-master-2 is ready..............  SUCCESS
+ · Check the internal registry is up and running...............  SUCCESS
+ Checking required artifacts:
+ · OCI container image 'ubi-sleep' is available................  SUCCESS
+ Checking for conflicts with existing OpenShift projects:
+ · Project 'kctfmp-external-registry' is absent................  SUCCESS
+ Checking for conflicts with existing local containers:
+ · Container 'sleep' is absent.................................  SUCCESS
+
+Setting up the classroom for GE: Using an External Registry
+
+ · Download exercise files.....................................  SUCCESS
+ · Download OCI container image folder 'ubi-sleep'.............  SUCCESS
+
+Overall start status...........................................  SUCCESS
+
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ ls ~/DO288/labs/external-registry/ubi-sleep
+blobs  index.json  oci-layout
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ source /usr/local/etc/ocp4.config
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ podman login -u ${RHT_OCP4_QUAY_USER} quay.io
+Password: 
+Login Succeeded!
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ skopeo copy \
+> oci:/home/student/DO288/labs/external-registry/ubi-sleep \
+> docker://quay.io/${RHT_OCP4_QUAY_USER}/ubi-sleep:1.0
+Getting image source signatures
+Copying blob 787f47dbeaac skipped: already exists  
+Copying blob 6a5240d60dc4 skipped: already exists  
+Copying blob 4f4fb700ef54 done  
+Copying config a77dcf3acd done  
+Writing manifest to image destination
+Copying config a77dcf3acd [--------------------------------------] 0.0b / 2.2KiB
+Writing manifest to image destination
+Writing manifest to image destination
+Storing signatures
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ podman search quay.io/ubi-sleep
+INDEX    NAME                                                   DESCRIPTION                                      STARS   OFFICIAL  AUTOMATED
+quay.io  quay.io/quarkus/ubi-quarkus-native-image               Quarkus.io executable image providing the `n...  0                 
+quay.io  quay.io/mongodb/mongodb-enterprise-ops-manager-ubi                                                      0                 
+quay.io  quay.io/quarkus/ubi-quarkus-native-s2i                 Quarkus.io S2I image for building Kubernetes...  0                 
+quay.io  quay.io/quarkus/ubi-quarkus-native-binary-s2i          Quarkus.io S2I image for running native imag...  0                 
+quay.io  quay.io/cloudservices/ubi-hive                         Repo for the hccm Insights hive app              0                 
+quay.io  quay.io/mongodb/mongodb-enterprise-operator-ubi                                                         0                 
+quay.io  quay.io/mongodb/mongodb-enterprise-database-ubi                                                         0                 
+quay.io  quay.io/quarkus/ubi-quarkus-mandrel                                                                     0                 
+quay.io  quay.io/mongodb/mongodb-agent-ubi                                                                       0                 
+quay.io  quay.io/prophetstor/alameda-notifier-ubi                                                                0                 
+quay.io  quay.io/containercraft/ubi                                                                              0                 
+quay.io  quay.io/cloudctl/ubi                                                                                    0                 
+quay.io  quay.io/prophetstor/alameda-recommender-ubi                                                             0                 
+quay.io  quay.io/prophetstor/federatorai-operator-ubi           **Federator.ai**, ProphetStor's Artificial I...  0                 
+quay.io  quay.io/eclipse/che-nodejs10-ubi                       UBI nodejs 10 image, patched to support Ecli...  0                 
+quay.io  quay.io/prophetstor/alameda-datahub-ubi                                                                 0                 
+quay.io  quay.io/prophetstor/alameda-operator-ubi                                                                0                 
+quay.io  quay.io/mongodb/mongodb-enterprise-appdb-ubi                                                            0                 
+quay.io  quay.io/prophetstor/alameda-executor-ubi                                                                0                 
+quay.io  quay.io/prophetstor/alameda-evictioner-ubi                                                              0                 
+quay.io  quay.io/prophetstor/alameda-admission-ubi                                                               0                 
+quay.io  quay.io/prophetstor/alameda-analyzer-ubi                                                                0                 
+quay.io  quay.io/prophetstor/federatorai-agent-ubi                                                               0                 
+quay.io  quay.io/mongodb/mongodb-enterprise-appdb-database-ubi                                                   0                 
+quay.io  quay.io/armosec/k8s-ca-websocket-ubi                                                                    0                 
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ skopeo inspect \
+> docker://quay.io/${RHT_OCP4_QUAY_USER}/ubi-sleep:1.0
+{
+    "Name": "quay.io/andrew_xu/ubi-sleep",
+    "Tag": "1.0",
+    "Digest": "sha256:3731ffdbcdeb51320cbd26ae8ca01f5fee90d563cae7603b062fee8a27731b38",
+    "RepoTags": [
+        "1.0"
+    ],
+    "Created": "2019-06-12T18:26:36.854367538Z",
+    "DockerVersion": "",
+    "Labels": {
+        "architecture": "x86_64",
+        "authoritative-source-url": "registry.access.redhat.com",
+        "build-date": "2019-04-25T16:26:03.051400",
+        "com.redhat.build-host": "cpt-0013.osbs.prod.upshift.rdu2.redhat.com",
+        "com.redhat.component": "ubi8-container",
+        "com.redhat.license_terms": "https://www.redhat.com/licenses/eulas",
+        "description": "The Universal Base Image is designed and engineered to be the base layer for all of your containerized applications, middleware and utilities. This base image is freely redistributable, but Red Hat only supports Red Hat technologies through subscriptions for Red Hat products. This image is maintained by Red Hat and updated regularly.",
+        "distribution-scope": "public",
+        "io.k8s.description": "The Universal Base Image is designed and engineered to be the base layer for all of your containerized applications, middleware and utilities. This base image is freely redistributable, but Red Hat only supports Red Hat technologies through subscriptions for Red Hat products. This image is maintained by Red Hat and updated regularly.",
+        "io.k8s.display-name": "Red Hat Universal Base Image 8",
+        "io.openshift.expose-services": "",
+        "io.openshift.tags": "base rhel8",
+        "maintainer": "Red Hat, Inc.",
+        "name": "ubi8",
+        "release": "122",
+        "summary": "Provides the latest release of Red Hat Universal Base Image 8.",
+        "url": "https://access.redhat.com/containers/#/registry.access.redhat.com/ubi8/images/8.0-122",
+        "vcs-ref": "d5ff1490fad8f1b57e451d384d3b331e94cf6fe4",
+        "vcs-type": "git",
+        "vendor": "Red Hat, Inc.",
+        "version": "8.0"
+    },
+    "Architecture": "amd64",
+    "Os": "linux",
+    "Layers": [
+        "sha256:787f47dbeaac926cc8c927a48e8a84fc97e05fbd1c08a4c9c4ddcaddfd87e2f7",
+        "sha256:6a5240d60dc4e1ade0d103badb2a897e8103ebf0ebe08350cd582bbc9671cc7a",
+        "sha256:4f4fb700ef54461cfa02571ae0db9a0dc1e0cdb5577484a6d75e68dc38e8acc1"
+    ],
+    "Env": [
+        "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+        "container=oci"
+    ]
+}
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ podman run -d --name sleep \
+> quay.io/${RHT_OCP4_QUAY_USER}/ubi-sleep:1.0
+Trying to pull quay.io/andrew_xu/ubi-sleep:1.0...
+Getting image source signatures
+Copying blob 787f47dbeaac skipped: already exists  
+Copying blob 6a5240d60dc4 skipped: already exists  
+Copying blob 4f4fb700ef54 done  
+Writing manifest to image destination
+Storing signatures
+aa3515437621977e437345b347f95443a6eb5e0314d41a239edc7b706b3af1bc
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ podman ps
+CONTAINER ID  IMAGE                            COMMAND               CREATED        STATUS            PORTS   NAMES
+aa3515437621  quay.io/andrew_xu/ubi-sleep:1.0  /bin/sh -c bash -...  5 seconds ago  Up 6 seconds ago          sl
+eep
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ podman logs sleep
+sleeping
+sleeping
+sleeping
+sleeping
+sleeping
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ podman stop sleep
+aa3515437621977e437345b347f95443a6eb5e0314d41a239edc7b706b3af1bc
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ podman rm sleep
+aa3515437621977e437345b347f95443a6eb5e0314d41a239edc7b706b3af1bc
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ podman ps
+CONTAINER ID  IMAGE   COMMAND  CREATED  STATUS  PORTS   NAMES
+[student@workstation DO288-apps]$ 
+
+[student@workstation DO288-apps]$ oc login -u ${RHT_OCP4_DEV_USER} \
+> -p ${RHT_OCP4_DEV_PASSWORD} ${RHT_OCP4_MASTER_API}
+Login successful.
+
+You have one project on this server: "kctfmp-s2i"
+
+Using project "kctfmp-s2i".
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ oc new-project ${RHT_OCP4_DEV_USER}-external-registry
+Now using project "kctfmp-external-registry" on server "https://api.na46.prod.nextcle.com:6443".
+
+You can add applications to this project with the 'new-app' command. For example, try:
+
+    oc new-app rails-postgresql-example
+
+to build a new example application in Ruby. Or use kubectl to deploy a simple Kubernetes application:
+
+    kubectl create deployment hello-node --image=k8s.gcr.io/serve_hostname
+
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ oc new-app --name sleep \
+> --docker-image quay.io/${RHT_OCP4_QUAY_USER}/ubi-sleep:1.0
+--> Found container image ef263ca (2 years old) from quay.io for "quay.io/andrew_xu/ubi-sleep:1.0"
+
+    Red Hat Universal Base Image 8 
+    ------------------------------ 
+    The Universal Base Image is designed and engineered to be the base layer for all of your containerized applications, middleware and utilities. This base image is freely redistributable, but Red Hat only supports Red Hat technologies through subscriptions for Red Hat products. This image is maintained by Red Hat and updated regularly.
+
+    Tags: base rhel8
+
+    * An image stream tag will be created as "sleep:1.0" that will track this image
+
+--> Creating resources ...
+    imagestream.image.openshift.io "sleep" created
+    deployment.apps "sleep" created
+--> Success
+    Run 'oc status' to view your app.
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ oc create secret generic quayio \
+> --from-file .dockerconfigjson=${XDG_RUNTIME_DIR}/containers/auth.json \
+> --type kubernetes.io/dockerconfigjson
+secret/quayio created
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ oc secrets link default quayio --for pull
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ oc new-app --name sleep \
+> --docker-image quay.io/${RHT_OCP4_QUAY_USER}/ubi-sleep:1.0
+--> Found container image ef263ca (2 years old) from quay.io for "quay.io/andrew_xu/ubi-sleep:1.0"
+
+    Red Hat Universal Base Image 8 
+    ------------------------------ 
+    The Universal Base Image is designed and engineered to be the base layer for all of your containerized applications, middleware and utilities. This base image is freely redistributable, but Red Hat only supports Red Hat technologies through subscriptions for Red Hat products. This image is maintained by Red Hat and updated regularly.
+
+    Tags: base rhel8
+
+    * An image stream tag will be created as "sleep:1.0" that will track this image
+
+--> Creating resources ...
+    error: deployments.apps "sleep" already exists
+--> Failed
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ oc get pod
+NAME                     READY   STATUS    RESTARTS   AGE
+sleep-56c8f57848-cc88d   1/1     Running   0          2m8s
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ oc logs sleep-56c8f57848-cc88d
+sleeping
+sleeping
+sleeping
+sleeping
+sleeping
+sleeping
+sleeping
+sleeping
+sleeping
+sleeping
+sleeping
+sleeping
+sleeping
+sleeping
+sleeping
+sleeping
+sleeping
+sleeping
+sleeping
+sleeping
+sleeping
+sleeping
+sleeping
+sleeping
+sleeping
+sleeping
+sleeping
+sleeping
+sleeping
+sleeping
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ oc delete project ${RHT_OCP4_DEV_USER}-external-registry
+project.project.openshift.io "kctfmp-external-registry" deleted
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ skopeo delete \
+> docker://quay.io/${RHT_OCP4_QUAY_USER}/ubi-sleep:1.0
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ lab external-registry finish
+
+Completing GE: Using an External Registry
+
+ · Log in on OpenShift.........................................  SUCCESS
+ · Remove exercise files.......................................  SUCCESS
+
+If you want to perform this exercise again, you need to access quay.io
+and delete your 'ubi-sleep' repository.
+
+
+Please use start if you wish to do the exercise again.
+
+[student@workstation DO288-apps]$ 
+

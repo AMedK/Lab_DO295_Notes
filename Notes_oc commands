@@ -1,0 +1,17 @@
+[student@workstation php-helloworld]$ grep RHT_OCP4_WILDCARD_DOMAIN /usr/local/etc/ocp4.config
+RHT_OCP4_WILDCARD_DOMAIN=apps.na46.prod.nextcle.com
+[student@workstation php-helloworld]$ 
+[student@workstation php-helloworld]$ oc whoami --show-console
+https://console-openshift-console.apps.na46.prod.nextcle.com
+[student@workstation php-helloworld]$ 
+[student@workstation php-helloworld]$ echo $RHT_OCP4_DEV_USER
+kctfmp
+[student@workstation php-helloworld]$ 
+[student@workstation php-helloworld]$ 
+[student@workstation php-helloworld]$ curl http://hello-kctfmp.apps.cluster.domain.example.com/
+curl: (6) Could not resolve host: hello-kctfmp.apps.cluster.domain.example.com
+[student@workstation php-helloworld]$ 
+[student@workstation php-helloworld]$ echo $RHT_OCP4_WILDCARD_DOMAIN
+apps.na46.prod.nextcle.com
+[student@workstation php-helloworld]$ 
+

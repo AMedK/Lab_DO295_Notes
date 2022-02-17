@@ -1,0 +1,257 @@
+[student@workstation DO288-apps]$ lab image-stream start
+
+Checking prerequisites for GE: Creating an Image Stream
+
+ Verifying the OpenShift cluster is running:
+ · Log in on OpenShift.........................................  SUCCESS
+ · Check master node na46-jffdq-master-0 is ready..............  SUCCESS
+ · Check master node na46-jffdq-master-1 is ready..............  SUCCESS
+ · Check master node na46-jffdq-master-2 is ready..............  SUCCESS
+ · Check the internal registry is up and running...............  SUCCESS
+ Checking required artifacts:
+ · Image 'redhattraining/hello-world-nginx' is available.......  SUCCESS
+ Checking for conflicts with existing OpenShift projects:
+ · Project 'kctfmp-image-stream' is absent.....................  SUCCESS
+ · Project 'kctfmp-common' is absent...........................  SUCCESS
+
+Overall start status...........................................  SUCCESS
+
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ oc new-project ${RHT_OCP4_DEV_USER}-common
+Already on project "kctfmp-common" on server "https://api.na46.prod.nextcle.com:6443".
+
+You can add applications to this project with the 'new-app' command. For example, try:
+
+    oc new-app rails-postgresql-example
+
+to build a new example application in Ruby. Or use kubectl to deploy a simple Kubernetes application:
+
+    kubectl create deployment hello-node --image=k8s.gcr.io/serve_hostname
+
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ skopeo inspect \
+> docker://quay.io/redhattraining/hello-world-nginx
+{
+    "Name": "quay.io/redhattraining/hello-world-nginx",
+    "Tag": "latest",
+    "Digest": "sha256:7f99ece5f39bf8d5d76a43cd9104a8d0a39f7135821b94bc1ebdc39cdc6dd63b",
+    "RepoTags": [
+        "latest",
+        "v1.0"
+    ],
+    "Created": "2019-06-26T22:59:13.751737399Z",
+    "DockerVersion": "",
+    "Labels": {
+        "architecture": "x86_64",
+        "authoritative-source-url": "registry.access.redhat.com",
+        "build-date": "2019-04-25T16:26:03.051400",
+        "com.redhat.build-host": "cpt-0013.osbs.prod.upshift.rdu2.redhat.com",
+        "com.redhat.component": "ubi8-container",
+        "com.redhat.license_terms": "https://www.redhat.com/licenses/eulas",
+        "description": "The Universal Base Image is designed and engineered to be the base layer for all of your containerized applications, middleware and utilities. This base image is freely redistributable, but Red Hat only supports Red Hat technologies through subscriptions for Red Hat products. This image is maintained by Red Hat and updated regularly.",
+        "distribution-scope": "public",
+        "io.k8s.description": "The Universal Base Image is designed and engineered to be the base layer for all of your containerized applications, middleware and utilities. This base image is freely redistributable, but Red Hat only supports Red Hat technologies through subscriptions for Red Hat products. This image is maintained by Red Hat and updated regularly.",
+        "io.k8s.display-name": "Red Hat Universal Base Image 8",
+        "io.openshift.expose-services": "",
+        "io.openshift.tags": "base rhel8",
+        "maintainer": "Red Hat, Inc.",
+        "name": "ubi8",
+        "release": "122",
+        "summary": "Provides the latest release of Red Hat Universal Base Image 8.",
+        "url": "https://access.redhat.com/containers/#/registry.access.redhat.com/ubi8/images/8.0-122",
+        "vcs-ref": "d5ff1490fad8f1b57e451d384d3b331e94cf6fe4",
+        "vcs-type": "git",
+        "vendor": "Red Hat, Inc.",
+        "version": "8.0"
+    },
+    "Architecture": "amd64",
+    "Os": "linux",
+    "Layers": [
+        "sha256:787f47dbeaac926cc8c927a48e8a84fc97e05fbd1c08a4c9c4ddcaddfd87e2f7",
+        "sha256:6a5240d60dc4e1ade0d103badb2a897e8103ebf0ebe08350cd582bbc9671cc7a",
+        "sha256:022387ff318fa4807100c9a29391ed805521e379c096d6a50c25babb31b33656",
+        "sha256:3ed712ae45281838f7104b88e2766f4418f50b7a465417e528f71b55523bc042",
+        "sha256:9d7cc8aba8af884688c4a7cb6432915d9208f92d0b068da628484d674b0da6d4",
+        "sha256:48d8385919594bc1fd07def5b73759bc2b89a5a9c06e62a6aa3bdbedec76b653",
+        "sha256:69fc56a2ba109a3fe3286efebc6d8afd7d058f9f13355bbf225accf90bd969e7",
+        "sha256:4f4fb700ef54461cfa02571ae0db9a0dc1e0cdb5577484a6d75e68dc38e8acc1",
+        "sha256:4f4fb700ef54461cfa02571ae0db9a0dc1e0cdb5577484a6d75e68dc38e8acc1",
+        "sha256:4f4fb700ef54461cfa02571ae0db9a0dc1e0cdb5577484a6d75e68dc38e8acc1"
+    ],
+    "Env": [
+        "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+        "container=oci"
+    ]
+}
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ oc import-image hello-world --confirm \
+> --from quay.io/redhattraining/hello-world-nginx
+imagestream.image.openshift.io/hello-world imported
+
+Name:			hello-world
+Namespace:		kctfmp-common
+Created:		Less than a second ago
+Labels:			<none>
+Annotations:		openshift.io/image.dockerRepositoryCheck=2022-02-17T03:00:25Z
+Image Repository:	image-registry.openshift-image-registry.svc:5000/kctfmp-common/hello-world
+Image Lookup:		local=false
+Unique Images:		1
+Tags:			1
+
+latest
+  tagged from quay.io/redhattraining/hello-world-nginx
+
+  * quay.io/redhattraining/hello-world-nginx@sha256:7f99ece5f39bf8d5d76a43cd9104a8d0a39f7135821b94bc1ebdc39cdc6dd63b
+      Less than a second ago
+
+Image Name:	hello-world:latest
+Docker Image:	quay.io/redhattraining/hello-world-nginx@sha256:7f99ece5f39bf8d5d76a43cd9104a8d0a39f7135821b94bc1ebdc39cdc6dd63b
+Name:		sha256:7f99ece5f39bf8d5d76a43cd9104a8d0a39f7135821b94bc1ebdc39cdc6dd63b
+Created:	Less than a second ago
+Annotations:	image.openshift.io/dockerLayersOrder=ascending
+Image Size:	88.1MB in 10 layers
+Layers:		70.95MB	sha256:787f47dbeaac926cc8c927a48e8a84fc97e05fbd1c08a4c9c4ddcaddfd87e2f7
+		1.483kB	sha256:6a5240d60dc4e1ade0d103badb2a897e8103ebf0ebe08350cd582bbc9671cc7a
+		17.15MB	sha256:022387ff318fa4807100c9a29391ed805521e379c096d6a50c25babb31b33656
+		259B	sha256:3ed712ae45281838f7104b88e2766f4418f50b7a465417e528f71b55523bc042
+		243B	sha256:9d7cc8aba8af884688c4a7cb6432915d9208f92d0b068da628484d674b0da6d4
+		1.004kB	sha256:48d8385919594bc1fd07def5b73759bc2b89a5a9c06e62a6aa3bdbedec76b653
+		213B	sha256:69fc56a2ba109a3fe3286efebc6d8afd7d058f9f13355bbf225accf90bd969e7
+		32B	sha256:4f4fb700ef54461cfa02571ae0db9a0dc1e0cdb5577484a6d75e68dc38e8acc1
+		0B	sha256:4f4fb700ef54461cfa02571ae0db9a0dc1e0cdb5577484a6d75e68dc38e8acc1
+		0B	sha256:4f4fb700ef54461cfa02571ae0db9a0dc1e0cdb5577484a6d75e68dc38e8acc1
+Image Created:	2 years ago
+Author:		<none>
+Arch:		amd64
+Command:	/bin/sh -c nginx -g "daemon off;"
+Working Dir:	<none>
+User:		1001
+Exposes Ports:	8080/tcp
+Docker Labels:	architecture=x86_64
+		authoritative-source-url=registry.access.redhat.com
+		build-date=2019-04-25T16:26:03.051400
+		com.redhat.build-host=cpt-0013.osbs.prod.upshift.rdu2.redhat.com
+		com.redhat.component=ubi8-container
+		com.redhat.license_terms=https://www.redhat.com/licenses/eulas
+		description=The Universal Base Image is designed and engineered to be the base layer for all of your containerized applications, middleware and utilities. This base image is freely redistributable, but Red Hat only supports Red Hat technologies through subscriptions for Red Hat products. This image is maintained by Red Hat and updated regularly.
+		distribution-scope=public
+		io.k8s.description=The Universal Base Image is designed and engineered to be the base layer for all of your containerized applications, middleware and utilities. This base image is freely redistributable, but Red Hat only supports Red Hat technologies through subscriptions for Red Hat products. This image is maintained by Red Hat and updated regularly.
+		io.k8s.display-name=Red Hat Universal Base Image 8
+		io.openshift.expose-services=
+		io.openshift.tags=base rhel8
+		maintainer=Red Hat, Inc.
+		name=ubi8
+		release=122
+		summary=Provides the latest release of Red Hat Universal Base Image 8.
+		url=https://access.redhat.com/containers/#/registry.access.redhat.com/ubi8/images/8.0-122
+		vcs-ref=d5ff1490fad8f1b57e451d384d3b331e94cf6fe4
+		vcs-type=git
+		vendor=Red Hat, Inc.
+		version=8.0
+Environment:	PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+		container=oci
+
+
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ oc get istag
+NAME                 IMAGE REFERENCE                                                                                                    UPDATED
+hello-world:latest   quay.io/redhattraining/hello-world-nginx@sha256:7f99ece5f39bf8d5d76a43cd9104a8d0a39f7135821b94bc1ebdc39cdc6dd63b   15 seconds ago
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ oc describe is hello-world
+Name:			hello-world
+Namespace:		kctfmp-common
+Created:		36 seconds ago
+Labels:			<none>
+Annotations:		openshift.io/image.dockerRepositoryCheck=2022-02-17T03:00:25Z
+Image Repository:	default-route-openshift-image-registry.apps.na46.prod.nextcle.com/kctfmp-common/hello-world
+Image Lookup:		local=false
+Unique Images:		1
+Tags:			1
+
+latest
+  tagged from quay.io/redhattraining/hello-world-nginx
+
+  * quay.io/redhattraining/hello-world-nginx@sha256:7f99ece5f39bf8d5d76a43cd9104a8d0a39f7135821b94bc1ebdc39cdc6dd63b
+      36 seconds ago
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ oc new-project ${RHT_OCP4_DEV_USER}-image-stream
+Now using project "kctfmp-image-stream" on server "https://api.na46.prod.nextcle.com:6443".
+
+You can add applications to this project with the 'new-app' command. For example, try:
+
+    oc new-app rails-postgresql-example
+
+to build a new example application in Ruby. Or use kubectl to deploy a simple Kubernetes application:
+
+    kubectl create deployment hello-node --image=k8s.gcr.io/serve_hostname
+
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ oc new-app --name hello \
+> -i ${RHT_OCP4_DEV_USER}-common/hello-world
+--> Found image 44eaa13 (2 years old) in image stream "kctfmp-common/hello-world" under tag "latest" for "kctfmp-common/hello-world"
+
+    Red Hat Universal Base Image 8 
+    ------------------------------ 
+    The Universal Base Image is designed and engineered to be the base layer for all of your containerized applications, middleware and utilities. This base image is freely redistributable, but Red Hat only supports Red Hat technologies through subscriptions for Red Hat products. This image is maintained by Red Hat and updated regularly.
+
+    Tags: base rhel8
+
+
+--> Creating resources ...
+    imagestreamtag.image.openshift.io "hello:latest" created
+    deployment.apps "hello" created
+    service "hello" created
+--> Success
+    Application is not exposed. You can expose services to the outside world by executing one or more of the commands below:
+     'oc expose service/hello' 
+    Run 'oc status' to view your app.
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ oc status
+In project kctfmp-image-stream on server https://api.na46.prod.nextcle.com:6443
+
+svc/hello - 172.30.11.134:8080
+  deployment/hello deploys kctfmp-common/hello-world:latest 
+    deployment #2 running for 19 seconds - 1 pod
+    deployment #1 deployed 19 seconds ago
+
+
+1 info identified, use 'oc status --suggest' to see details.
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ oc get pod
+NAME                     READY   STATUS    RESTARTS   AGE
+hello-6599bb7b9c-9srg7   1/1     Running   0          30s
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ oc expose svc hello
+route.route.openshift.io/hello exposed
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ oc get route
+NAME    HOST/PORT                                              PATH   SERVICES   PORT       TERMINATION   WILDCARD
+hello   hello-kctfmp-image-stream.apps.na46.prod.nextcle.com          hello      8080-tcp                 None
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ curl \
+> http://hello-${RHT_OCP4_DEV_USER}-image-stream.${RHT_OCP4_WILDCARD_DOMAIN}
+<html>
+  <body>
+    <h1>Hello, world from nginx!</h1>
+  </body>
+</html>
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ oc delete project ${RHT_OCP4_DEV_USER}-image-stream
+project.project.openshift.io "kctfmp-image-stream" deleted
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ oc delete project ${RHT_OCP4_DEV_USER}-common
+project.project.openshift.io "kctfmp-common" deleted
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ lab image-stream finish
+
+Completing GE: Creating an Image Stream
+
+ · Log in on OpenShift.........................................  SUCCESS
+
+Please use start if you wish to do the exercise again.
+
+[student@workstation DO288-apps]$ 
+

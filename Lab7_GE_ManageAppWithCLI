@@ -1,0 +1,438 @@
+[student@workstation ~]$ git clone https://github.com/whynot108/DO288-apps.git
+Cloning into 'DO288-apps'...
+remote: Enumerating objects: 1140, done.
+remote: Total 1140 (delta 0), reused 0 (delta 0), pack-reused 1140
+Receiving objects: 100% (1140/1140), 1.06 MiB | 6.89 MiB/s, done.
+Resolving deltas: 100% (278/278), done.
+[student@workstation ~]$ ls -l
+total 4
+drwxr-xr-x.  3 student student   29 Feb 14 11:09 Desktop
+drwxr-xr-x.  4 root    root      35 Feb 14 14:02 DO180
+drwxrwxr-x.  9 student student  153 Feb 15 15:58 DO180-apps
+drwxrwxr-x. 35 student student 4096 Feb 16 10:43 DO288-apps
+drwxr-xr-x.  2 student student    6 Feb 14 10:21 Documents
+drwxr-xr-x.  2 student student    6 Feb 14 10:21 Downloads
+drwxrwxr-x.  2 student student    6 Feb 14 15:44 local
+drwxr-xr-x.  2 student student    6 Feb 14 10:21 Music
+drwxr-xr-x.  2 student student    6 Feb 14 10:21 Pictures
+drwxr-xr-x.  2 student student    6 Feb 14 10:21 Public
+drwxr-xr-x.  2 student student    6 Feb 14 10:21 Templates
+drwxr-xr-x.  2 student student    6 Feb 14 10:21 Videos
+[student@workstation ~]$ 
+[student@workstation ~]$ 
+[student@workstation ~]$ cd ~/DO288-apps
+[student@workstation DO288-apps]$ git checkout main
+Already on 'main'
+Your branch is up to date with 'origin/main'.
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ ls ~/DO288-apps/quotes
+get.php  index.php
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ less ~/DO288-apps/quotes/get.php
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ source /usr/local/etc/ocp4.config
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ oc login -u ${RHT_OCP4_DEV_USER} \
+> -p ${RHT_OCP4_DEV_PASSWORD} ${RHT_OCP4_MASTER_API}
+Login successful.
+
+You have one project on this server: "kctfmp-s2i"
+
+Using project "kctfmp-s2i".
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ oc get templates -n openshift | grep php \
+> | grep mysql
+cakephp-mysql-example                               An example CakePHP application with a MySQL database. For more information ab...   20 (4 blank)      8
+cakephp-mysql-persistent                            An example CakePHP application with a MySQL database. For more information ab...   21 (4 blank)      9
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ oc new-project ${RHT_OCP4_DEV_USER}-common
+Now using project "kctfmp-common" on server "https://api.na46.prod.nextcle.com:6443".
+
+You can add applications to this project with the 'new-app' command. For example, try:
+
+    oc new-app rails-postgresql-example
+
+to build a new example application in Ruby. Or use kubectl to deploy a simple Kubernetes application:
+
+    kubectl create deployment hello-node --image=k8s.gcr.io/serve_hostname
+
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ oc create -f \
+> ~/DO288/labs/build-template/php-mysql-ephemeral.json
+error: the path "/home/student/DO288/labs/build-template/php-mysql-ephemeral.json" does not exist
+[student@workstation DO288-apps]$ 
+[student@workstation ~]$ 
+[student@workstation ~]$ lab build-template start
+
+Checking prerequisites for GE: Managing an Application with the CLI
+
+ Checking local clone of the applications repository:
+ · Folder '/home/student/DO288-apps' is a git repo.............  SUCCESS
+ · Git repo '/home/student/DO288-apps' has no pending changes..  SUCCESS
+ Verifying the OpenShift cluster is running:
+ · Log in on OpenShift.........................................  SUCCESS
+ · Check master node na46-jffdq-master-0 is ready..............  SUCCESS
+ · Check master node na46-jffdq-master-1 is ready..............  SUCCESS
+ · Check master node na46-jffdq-master-2 is ready..............  SUCCESS
+ · Check the internal registry is up and running...............  SUCCESS
+ Checking required artifacts:
+ · Project 'quotes' exists in student's GitHub fork............  SUCCESS
+ Checking for conflicts with existing OpenShift projects:
+ · Project 'kctfmp-build-template' is absent...................  SUCCESS
+
+Setting up the classroom for GE: Managing an Application with the CLI
+
+ · Download exercise files.....................................  SUCCESS
+
+Overall start status...........................................  SUCCESS
+
+[student@workstation ~]$ 
+[student@workstation ~]$ ls -l
+total 4
+drwxr-xr-x.  3 student student   29 Feb 14 11:09 Desktop
+drwxr-xr-x.  4 root    root      35 Feb 14 14:02 DO180
+drwxrwxr-x.  9 student student  153 Feb 15 15:58 DO180-apps
+drwxr-xr-x.  3 student student   18 Feb 16 10:56 DO288
+drwxrwxr-x. 35 student student 4096 Feb 16 10:43 DO288-apps
+drwxr-xr-x.  2 student student    6 Feb 14 10:21 Documents
+drwxr-xr-x.  2 student student    6 Feb 14 10:21 Downloads
+drwxrwxr-x.  2 student student    6 Feb 14 15:44 local
+drwxr-xr-x.  2 student student    6 Feb 14 10:21 Music
+drwxr-xr-x.  2 student student    6 Feb 14 10:21 Pictures
+drwxr-xr-x.  2 student student    6 Feb 14 10:21 Public
+drwxr-xr-x.  2 student student    6 Feb 14 10:21 Templates
+drwxr-xr-x.  2 student student    6 Feb 14 10:21 Videos
+[student@workstation ~]$ 
+[student@workstation ~]$ cd DO288-apps/
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ oc create -f \
+> ~/DO288/labs/build-template/php-mysql-ephemeral.json
+template.template.openshift.io/php-mysql-ephemeral created
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ oc create -f \
+> ~/DO288/labs/build-template/php-mysql-ephemeral.json
+template.template.openshift.io/php-mysql-ephemeral created
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ oc new-project \
+> ${RHT_OCP4_DEV_USER}-build-template
+Now using project "kctfmp-build-template" on server "https://api.na46.prod.nextcle.com:6443".
+
+You can add applications to this project with the 'new-app' command. For example, try:
+
+    oc new-app rails-postgresql-example
+
+to build a new example application in Ruby. Or use kubectl to deploy a simple Kubernetes application:
+
+    kubectl create deployment hello-node --image=k8s.gcr.io/serve_hostname
+
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ oc describe template php-mysql-ephemeral \
+> -n ${RHT_OCP4_DEV_USER}-common
+Name:		php-mysql-ephemeral
+Namespace:	kctfmp-common
+Created:	6 minutes ago
+Labels:		<none>
+Description:	A  PHP application with a MySQL database.
+		WARNING: Any data stored will be lost upon pod destruction. Only use this template for testing.
+Annotations:	iconClass=icon-php
+		openshift.io/display-name=PHP + MySQL (Ephemeral)
+		tags=php
+		template.openshift.io/long-description=This template defines resources needed to develop a PHP application, including a build configuration, application deployment configuration, and database deployment configuration.  The database is stored in non-persistent storage, so this configuration should be used for experimental purposes only.
+		template.openshift.io/provider-display-name=Red Hat Training
+
+Parameters:		 
+    Name:		NAME
+    Display Name:	Name
+    Description:	The name assigned to all of the app objects defined in this template.
+    Required:		true
+    Value:		php-app
+
+    Name:		NAMESPACE
+    Display Name:	Namespace
+    Description:	The OpenShift Namespace where the S2I biulder ImageStream resides.
+    Required:		true
+    Value:		openshift
+
+    Name:		SOURCE_REPOSITORY_URL
+    Display Name:	Git Repository URL
+    Description:	The URL of the repository with your application source code.
+    Required:		true
+    Value:		<none>
+
+    Name:		SOURCE_REPOSITORY_REF
+    Display Name:	Git Reference
+    Description:	Set this to a branch name, tag or other ref of your repository if you are not using the default branch.
+    Required:		false
+    Value:		<none>
+
+    Name:		CONTEXT_DIR
+    Display Name:	Context Directory
+    Description:	Set this to the relative path to your project if it is not in the root of your repository.
+    Required:		false
+    Value:		<none>
+
+    Name:		APPLICATION_DOMAIN
+    Display Name:	Application Hostname
+    Description:	The exposed hostname that will route to the PHP app service, if left blank a value will be defaulted.
+    Required:		false
+    Value:		<none>
+
+    Name:		GITHUB_WEBHOOK_SECRET
+    Display Name:	GitHub Webhook Secret
+    Description:	Github trigger secret.  A difficult to guess string encoded as part of the webhook URL.  Not encrypted.
+    Required:		false
+    Generated:		expression
+    From:		[a-zA-Z0-9]{40}
+
+    Name:		DATABASE_SERVICE_NAME
+    Display Name:	Database Service Name
+    Required:		true
+    Value:		mysql
+
+    Name:		DATABASE_NAME
+    Display Name:	Database Name
+    Required:		true
+    Value:		phpapp
+
+    Name:		DATABASE_USER
+    Display Name:	Database User
+    Required:		true
+    Value:		php
+
+    Name:		DATABASE_PASSWORD
+    Display Name:	Database Password
+    Required:		false
+    Generated:		expression
+    From:		[a-zA-Z0-9]{16}
+
+
+Object Labels:	template=php-mysql-ephemeral
+
+Message:	The following service(s) have been created in your project: ${NAME}, ${DATABASE_SERVICE_NAME}.
+		
+
+Objects:				 
+    Secret				${NAME}
+    Service				${NAME}
+    Route.route.openshift.io		${NAME}
+    ImageStream.image.openshift.io	${NAME}
+    BuildConfig.build.openshift.io	${NAME}
+    Deployment.apps			${NAME}
+    Service				${DATABASE_SERVICE_NAME}
+    Deployment.apps			${DATABASE_SERVICE_NAME}
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ cat ~/DO288/labs/build-template/create-app.sh
+#!/bin/sh
+
+source /usr/local/etc/ocp4.config
+
+oc new-app --template ${RHT_OCP4_DEV_USER}-common/php-mysql-ephemeral \
+  -p NAME=quotesapi \
+  -p APPLICATION_DOMAIN=quote-${RHT_OCP4_DEV_USER}.${RHT_OCP4_WILDCARD_DOMAIN} \
+  -p SOURCE_REPOSITORY_URL=https://github.com/${RHT_OCP4_GITHUB_USER}/DO288-apps \
+  -p CONTEXT_DIR=quotes \
+  -p DATABASE_SERVICE_NAME=quotesdb \
+  -p DATABASE_USER=user1 \
+  -p DATABASE_PASSWORD=mypa55 \
+  --name quotes
+
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ cat ~/DO288/labs/build-template/create-app.sh
+#!/bin/sh
+
+source /usr/local/etc/ocp4.config
+
+oc new-app --template ${RHT_OCP4_DEV_USER}-common/php-mysql-ephemeral \
+  -p NAME=quotesapi \
+  -p APPLICATION_DOMAIN=quote-${RHT_OCP4_DEV_USER}.${RHT_OCP4_WILDCARD_DOMAIN} \
+  -p SOURCE_REPOSITORY_URL=https://github.com/${RHT_OCP4_GITHUB_USER}/DO288-apps \
+  -p CONTEXT_DIR=quotes \
+  -p DATABASE_SERVICE_NAME=quotesdb \
+  -p DATABASE_USER=user1 \
+  -p DATABASE_PASSWORD=mypa55 \
+  --name quotes
+
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ ~/DO288/labs/build-template/create-app.sh
+--> Deploying template "kctfmp-common/php-mysql-ephemeral" for "kctfmp-common/php-mysql-ephemeral" to project kctfmp-build-template
+
+     PHP + MySQL (Ephemeral)
+     ---------
+     A  PHP application with a MySQL database.
+     WARNING: Any data stored will be lost upon pod destruction. Only use this template for testing.
+
+     The following service(s) have been created in your project: quotesapi, quotesdb.
+
+     * With parameters:
+        * Name=quotesapi
+        * Namespace=openshift
+        * Git Repository URL=https://github.com/whynot108/DO288-apps
+        * Git Reference=
+        * Context Directory=quotes
+        * Application Hostname=quote-kctfmp.apps.na46.prod.nextcle.com
+        * GitHub Webhook Secret=4pUb84JfK5lNC8vw0mCM7i56c5FcLjk2yrDgrGWG # generated
+        * Database Service Name=quotesdb
+        * Database Name=phpapp
+        * Database User=user1
+        * Database Password=mypa55
+
+--> Creating resources ...
+    secret "quotesapi" created
+    service "quotesapi" created
+    route.route.openshift.io "quotesapi" created
+    imagestream.image.openshift.io "quotesapi" created
+    buildconfig.build.openshift.io "quotesapi" created
+    deployment.apps "quotesapi" created
+    service "quotesdb" created
+    deployment.apps "quotesdb" created
+--> Success
+    Access your application via route 'quote-kctfmp.apps.na46.prod.nextcle.com' 
+    Build scheduled, use 'oc logs -f buildconfig/quotesapi' to track its progress.
+    Run 'oc status' to view your app.
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ oc logs -f bc/quotesapi
+Cloning "https://github.com/whynot108/DO288-apps" ...
+	Commit:	f355431fb67e02bf81041c1ddf395770a774c657 (Fix(ch08s04): Correct Chef download link in Containerfile (#192))
+	Author:	Guy Bianco IV <gjbiancoiv@gmail.com>
+	Date:	Tue Nov 16 03:37:38 2021 -0500
+Caching blobs under "/var/cache/blobs".
+Getting image source signatures
+Copying blob sha256:0fc972655972b3a911d7d9adf0faacb870f7989f9129ff37569d96ca82c1ee8b
+Copying blob sha256:63f9f4c31162a6a5dacd999a0dc65007e15b2ca6b2d9360a1234c27de12e7f38
+Copying blob sha256:d49355ce848e2c86326ad8d7c3e4905e2883c89e1f6b79553427f1acf21ea7d1
+Copying blob sha256:ce3c6836540f978b55c511d236429e26b7a45f5a6f1204ab8d4378afaf77332f
+Copying blob sha256:8c7374433d67e1cf3d630de2f738335f02208f832a21242f29fa8929fc50382e
+Copying config sha256:7714e1b0ba315c495bcb43787326058411537e378555257951f03307d3058cd2
+Writing manifest to image destination
+Storing signatures
+Generating dockerfile with builder image image-registry.openshift-image-registry.svc:5000/openshift/php@sha256:0365b13ccf86a3c448255baf645439730f3883c8dbc55d4f93b66d3c9f02c98a
+STEP 1: FROM image-registry.openshift-image-registry.svc:5000/openshift/php@sha256:0365b13ccf86a3c448255baf645439730f3883c8dbc55d4f93b66d3c9f02c98a
+STEP 2: LABEL "io.openshift.build.source-context-dir"="quotes"       "io.openshift.build.image"="image-registry.openshift-image-registry.svc:5000/openshift/php@sha256:0365b13ccf86a3c448255baf645439730f3883c8dbc55d4f93b66d3c9f02c98a"       "io.openshift.build.commit.author"="Guy Bianco IV <gjbiancoiv@gmail.com>"       "io.openshift.build.commit.date"="Tue Nov 16 03:37:38 2021 -0500"       "io.openshift.build.commit.id"="f355431fb67e02bf81041c1ddf395770a774c657"       "io.openshift.build.commit.ref"="main"       "io.openshift.build.commit.message"="Fix(ch08s04): Correct Chef download link in Containerfile (#192)"       "io.openshift.build.source-location"="https://github.com/whynot108/DO288-apps"
+STEP 3: ENV OPENSHIFT_BUILD_NAME="quotesapi-1"     OPENSHIFT_BUILD_NAMESPACE="kctfmp-build-template"     OPENSHIFT_BUILD_SOURCE="https://github.com/whynot108/DO288-apps"     OPENSHIFT_BUILD_COMMIT="f355431fb67e02bf81041c1ddf395770a774c657"
+STEP 4: USER root
+STEP 5: COPY upload/src /tmp/src
+STEP 6: RUN chown -R 1001:0 /tmp/src
+time="2022-02-16T16:06:55Z" level=warning msg="Path \"/run/secrets/etc-pki-entitlement\" from \"/etc/containers/mounts.conf\" doesn't exist, skipping"
+time="2022-02-16T16:06:55Z" level=warning msg="Path \"/run/secrets/redhat.repo\" from \"/etc/containers/mounts.conf\" doesn't exist, skipping"
+STEP 7: USER 1001
+STEP 8: RUN /usr/libexec/s2i/assemble
+time="2022-02-16T16:06:57Z" level=warning msg="Path \"/run/secrets/etc-pki-entitlement\" from \"/etc/containers/mounts.conf\" doesn't exist, skipping"
+time="2022-02-16T16:06:57Z" level=warning msg="Path \"/run/secrets/redhat.repo\" from \"/etc/containers/mounts.conf\" doesn't exist, skipping"
+---> Installing application source...
+=> sourcing 20-copy-config.sh ...
+---> 16:06:57     Processing additional arbitrary httpd configuration provided by s2i ...
+=> sourcing 00-documentroot.conf ...
+=> sourcing 50-mpm-tuning.conf ...
+=> sourcing 40-ssl-certs.sh ...
+STEP 9: CMD /usr/libexec/s2i/run
+STEP 10: COMMIT temp.builder.openshift.io/kctfmp-build-template/quotesapi-1:ac7b25bd
+Getting image source signatures
+Copying blob sha256:0d3f22d60daf4a2421b2239fb0e1c6ec02d3787274db8b098fb648941ea2d5dc
+Copying blob sha256:0488bd866f642b2b1b5490f5c50d628815e4e8fa1f7cae57d52c67c1e9d3e2cc
+Copying blob sha256:168d524b4a7c06b8494887f9aec66feb53132b726e95b51392d823d4ae2a8e09
+Copying blob sha256:714b6d92c03a24302e1b6ae807999fe887bdc77505a7bbe79e05382ff9552491
+Copying blob sha256:12aaf9e969f008f7b025d35f1d9f3c09c1c9f964c0d81ff240ae6fb4f756a1d2
+Copying blob sha256:0e3985b1a7076f4a84382dd98cd4972c20b7008de2c1e74a015ab9009f20bf55
+Copying config sha256:c8687ae0c1bc245f6a0ed1b6e14ca7ca7bc0cb06d404a335bcc945d7724be1a3
+Writing manifest to image destination
+Storing signatures
+--> c8687ae0c1b
+c8687ae0c1bc245f6a0ed1b6e14ca7ca7bc0cb06d404a335bcc945d7724be1a3
+
+Pushing image image-registry.openshift-image-registry.svc:5000/kctfmp-build-template/quotesapi:latest ...
+Getting image source signatures
+Copying blob sha256:0e3985b1a7076f4a84382dd98cd4972c20b7008de2c1e74a015ab9009f20bf55
+Copying blob sha256:63f9f4c31162a6a5dacd999a0dc65007e15b2ca6b2d9360a1234c27de12e7f38
+Copying blob sha256:0fc972655972b3a911d7d9adf0faacb870f7989f9129ff37569d96ca82c1ee8b
+Copying blob sha256:d49355ce848e2c86326ad8d7c3e4905e2883c89e1f6b79553427f1acf21ea7d1
+Copying blob sha256:ce3c6836540f978b55c511d236429e26b7a45f5a6f1204ab8d4378afaf77332f
+Copying blob sha256:8c7374433d67e1cf3d630de2f738335f02208f832a21242f29fa8929fc50382e
+Copying config sha256:c8687ae0c1bc245f6a0ed1b6e14ca7ca7bc0cb06d404a335bcc945d7724be1a3
+Writing manifest to image destination
+Storing signatures
+Successfully pushed image-registry.openshift-image-registry.svc:5000/kctfmp-build-template/quotesapi@sha256:27db
+ee75343df172b7be938d67f709c4cae6e682a0b9fa94ac614b4a20ecef4f
+Push successful
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ oc get pod
+NAME                         READY   STATUS      RESTARTS   AGE
+quotesapi-1-build            0/1     Completed   0          3m2s
+quotesapi-5f5bcd6b7c-6hn89   1/1     Running     0          3m2s
+quotesdb-6b7ffcc649-hh2dv    1/1     Running     0          3m2s
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ oc get route
+NAME        HOST/PORT                                 PATH   SERVICES    PORT    TERMINATION   WILDCARD
+quotesapi   quote-kctfmp.apps.na46.prod.nextcle.com          quotesapi   <all>                 None
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ oc describe svc quotesdb | grep Endpoints
+Endpoints:         10.129.3.219:3306
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ oc describe pod quotesdb-6b7ffcc649-dslpq | grep IP
+Error from server (NotFound): pods "quotesdb-6b7ffcc649-dslpq" not found
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ oc describe pod quotesdb-6b7ffcc649-hh2dv | grep IP
+IP:           10.129.3.219
+IPs:
+  IP:           10.129.3.219
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ oc describe pod quotesdb-6b7ffcc649-hh2dv | grep -A 4 Environment
+    Environment:
+      MYSQL_USER:           <set to the key 'database-user' in secret 'quotesapi'>      Optional: false
+      MYSQL_ROOT_PASSWORD:  <set to the key 'database-password' in secret 'quotesapi'>  Optional: false
+      MYSQL_PASSWORD:       <set to the key 'database-password' in secret 'quotesapi'>  Optional: false
+      MYSQL_DATABASE:       phpapp
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ oc describe pod quotesapi-5f5bcd6b7c-6hn89 | grep -A 5 Environment
+    Environment:
+      DATABASE_SERVICE_NAME:  quotesdb
+      DATABASE_NAME:          phpapp
+      DATABASE_USER:          <set to the key 'database-user' in secret 'quotesapi'>      Optional: false
+      DATABASE_PASSWORD:      <set to the key 'database-password' in secret 'quotesapi'>  Optional: false
+    Mounts:
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ oc rsh quotesapi-5f5bcd6b7c-6hn89 bash -c \
+> 'echo > /dev/tcp/$DATABASE_SERVICE_NAME/3306 && echo OK || echo FAIL'
+OK
+[student@workstation DO288-apps]$
+[student@workstation DO288-apps]$ oc logs quotesapi-5f5bcd6b7c-6hn89
+-> Cgroups memory limit is set, using HTTPD_MAX_REQUEST_WORKERS=136
+=> sourcing 20-copy-config.sh ...
+---> 16:07:04     Processing additional arbitrary httpd configuration provided by s2i ...
+=> sourcing 00-documentroot.conf ...
+=> sourcing 50-mpm-tuning.conf ...
+=> sourcing 40-ssl-certs.sh ...
+AH00558: httpd: Could not reliably determine the server's fully qualified domain name, using 10.129.3.218. Set the 'ServerName' directive globally to suppress this message
+[Wed Feb 16 16:07:04.772627 2022] [ssl:warn] [pid 1] AH01909: 10.129.3.218:8443:0 server certificate does NOT include an ID which matches the server name
+AH00558: httpd: Could not reliably determine the server's fully qualified domain name, using 10.129.3.218. Set the 'ServerName' directive globally to suppress this message
+[Wed Feb 16 16:07:04.846588 2022] [ssl:warn] [pid 1] AH01909: 10.129.3.218:8443:0 server certificate does NOT include an ID which matches the server name
+[Wed Feb 16 16:07:04.846743 2022] [lbmethod_heartbeat:notice] [pid 1] AH02282: No slotmem from mod_heartmonitor
+[Wed Feb 16 16:07:04.846861 2022] [http2:warn] [pid 1] AH10034: The mpm module (prefork.c) is not supported by mod_http2. The mpm determines how things are processed in your server. HTTP/2 has more demands in this regard and the currently selected mpm will just not do. This is an advisory warning. Your server will continue to work, but the HTTP/2 protocol will be inactive.
+[Wed Feb 16 16:07:04.957750 2022] [mpm_prefork:notice] [pid 1] AH00163: Apache/2.4.37 (Red Hat Enterprise Linux) OpenSSL/1.1.1k configured -- resuming normal operations
+[Wed Feb 16 16:07:04.957779 2022] [core:notice] [pid 1] AH00094: Command line: 'httpd -D FOREGROUND'
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ oc logs quotesapi-5f5bcd6b7c-6hn89 | grep "SQL"
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ oc cp ~/DO288/labs/build-template/quote.sql \
+> quotesdb-6b7ffcc649-hh2dv:/tmp/quote.sql
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ oc rsh -t quotesdb-6b7ffcc649-hh2dv
+$ mysql -u$MYSQL_USER -p$MYSQL_PASSWORD $MYSQL_DATABASE < /tmp/quote.sql
+mysql: [Warning] Using a password on the command line interface can be insecure.
+$ exit
+[student@workstation DO288-apps]$ 
+[student@workstation DO288-apps]$ curl -si \
+> http://quote-$RHT_OCP4_DEV_USER.$RHT_OCP4_WILDCARD_DOMAIN/get.php
+HTTP/1.1 200 OK
+Date: Wed, 16 Feb 2022 16:22:56 GMT
+Server: Apache/2.4.37 (Red Hat Enterprise Linux) OpenSSL/1.1.1k
+Content-Length: 73
+Content-Type: text/html; charset=UTF-8
+Set-Cookie: c9ae52c06b8588b5f9af1db6fcc7d21b=1a0fa6b408aa25b6f2c9821b4a36aa18; path=/; HttpOnly
+Cache-control: private
+
+Always remember that you are absolutely unique. Just like everyone else.
+[student@workstation DO288-apps]$ 
+

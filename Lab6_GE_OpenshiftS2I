@@ -1,0 +1,303 @@
+[student@workstation DO180-apps]$ git checkout -b s2i1
+Switched to a new branch 's2i1'
+[student@workstation DO180-apps]$ 
+[student@workstation DO180-apps]$ git push -u origin s2i1
+Total 0 (delta 0), reused 0 (delta 0), pack-reused 0
+remote: 
+remote: Create a pull request for 's2i1' on GitHub by visiting:
+remote:      https://github.com/whynot108/DO180-apps/pull/new/s2i1
+remote: 
+To https://github.com/whynot108/DO180-apps
+ * [new branch]      s2i1 -> s2i1
+Branch 's2i1' set up to track remote branch 's2i1' from 'origin'.
+[student@workstation DO180-apps]$ 
+[student@workstation DO180-apps]$ cat /home/student/DO180-apps/php-helloworld/index.php 
+<?php
+print "Hello, World! php version is " . PHP_VERSION . "\n";
+?>
+[student@workstation DO180-apps]$ 
+[student@workstation DO180-apps]$ source /usr/local/etc/ocp4.config
+[student@workstation DO180-apps]$ 
+[student@workstation DO180-apps]$ oc login -u ${RHT_OCP4_DEV_USER} -p \
+> ${RHT_OCP4_DEV_PASSWORD} ${RHT_OCP4_MASTER_API}
+Login successful.
+
+You don't have any projects. You can try to create a new project, by running
+
+    oc new-project <projectname>
+
+[student@workstation DO180-apps]$ 
+[student@workstation DO180-apps]$ 
+[student@workstation DO180-apps]$ oc new-project ${RHT_OCP4_DEV_USER}-s2i
+Now using project "kctfmp-s2i" on server "https://api.na46.prod.nextcle.com:6443".
+
+You can add applications to this project with the 'new-app' command. For example, try:
+
+    oc new-app rails-postgresql-example
+
+to build a new example application in Ruby. Or use kubectl to deploy a simple Kubernetes application:
+
+    kubectl create deployment hello-node --image=k8s.gcr.io/serve_hostname
+
+[student@workstation DO180-apps]$ oc new-app php:7.3 --name=php-helloworld \
+> https://github.com/${RHT_OCP4_GITHUB_USER}/DO180-apps#s2i1 \
+> --context-dir php-helloworld
+--> Found image 20f38f7 (5 weeks old) in image stream "openshift/php" under tag "7.3" for "php:7.3"
+
+    Apache 2.4 with PHP 7.3 
+    ----------------------- 
+    PHP 7.3 available as container is a base platform for building and running various PHP 7.3 applications and frameworks. PHP is an HTML-embedded scripting language. PHP attempts to make it easy for developers to write dynamically generated web pages. PHP also offers built-in database integration for several commercial and non-commercial database management systems, so writing a database-enabled webpage with PHP is fairly simple. The most common use of PHP coding is probably as a replacement for CGI scripts.
+
+    Tags: builder, php, php73, rh-php73
+
+    * The source repository appears to match: php
+    * A source build using source code from https://github.com/whynot108/DO180-apps#s2i1 will be created
+      * The resulting image will be pushed to image stream tag "php-helloworld:latest"
+      * Use 'oc start-build' to trigger a new build
+
+--> Creating resources ...
+    imagestream.image.openshift.io "php-helloworld" created
+    buildconfig.build.openshift.io "php-helloworld" created
+    deployment.apps "php-helloworld" created
+    service "php-helloworld" created
+--> Success
+    Build scheduled, use 'oc logs -f buildconfig/php-helloworld' to track its progress.
+    Application is not exposed. You can expose services to the outside world by executing one or more of the commands below:
+     'oc expose service/php-helloworld' 
+    Run 'oc status' to view your app.
+[student@workstation DO180-apps]$ 
+[student@workstation DO180-apps]$ oc get pods
+NAME                     READY   STATUS    RESTARTS   AGE
+php-helloworld-1-build   1/1     Running   0          20s
+[student@workstation DO180-apps]$ 
+[student@workstation DO180-apps]$ oc logs --all-containers \
+> -f php-helloworld-1-build
+Cloning "https://github.com/whynot108/DO180-apps" ...
+	Commit:	f7cd8963ef353d9173c3a21dcccf402f3616840b (Initial commit, including all apps previously in course)
+	Author:	Jordi Sola <someth2say@gmail.com>
+	Date:	Fri Oct 4 13:04:03 2019 +0200
+Caching blobs under "/var/cache/blobs".
+Getting image source signatures
+Copying blob sha256:20e380a796ab6ac40a52d8a2b84a8913b84d7d8e632fbe92fe727a614ee7e6da
+Copying blob sha256:771ccdfd650727b418599ec759353ae8bb2a36d80cf5b72bd021aa9ae1dc1eea
+Copying blob sha256:f15ada16b67177f40249f31517db7fe4488a3f05e602a7b6f7402de6d853b9a3
+Copying blob sha256:3a4f63a9dc197ae48cddc08a53e02748a45d7847767f837b8cc7b1c0b93f9411
+Copying blob sha256:1cd88f0a187e2d8a2bf14bf492d94652e702e4f3db8c9e54fd3c35db8737f82c
+Copying config sha256:20f38f7f47fcad275e8b456edbc0a8fc568f2a18fef5b7b2ee8bdb2803c1bb7e
+Writing manifest to image destination
+Storing signatures
+Generating dockerfile with builder image image-registry.openshift-image-registry.svc:5000/openshift/php@sha256:06e7d909830c4fd48b31baba7d5cff2c23c73fb268996f69559393c6a9007d74
+STEP 1: FROM image-registry.openshift-image-registry.svc:5000/openshift/php@sha256:06e7d909830c4fd48b31baba7d5cff2c23c73fb268996f69559393c6a9007d74
+STEP 2: LABEL "io.openshift.build.commit.author"="Jordi Sola <someth2say@gmail.com>"       "io.openshift.build.commit.date"="Fri Oct 4 13:04:03 2019 +0200"       "io.openshift.build.commit.id"="f7cd8963ef353d9173c3a21dcccf402f3616840b"       "io.openshift.build.commit.ref"="s2i1"       "io.openshift.build.commit.message"="Initial commit, including all apps previously in course"       "io.openshift.build.source-location"="https://github.com/whynot108/DO180-apps"       "io.openshift.build.source-context-dir"="php-helloworld"       "io.openshift.build.image"="image-registry.openshift-image-registry.svc:5000/openshift/php@sha256:06e7d909830c4fd48b31baba7d5cff2c23c73fb268996f69559393c6a9007d74"
+STEP 3: ENV OPENSHIFT_BUILD_NAME="php-helloworld-1"     OPENSHIFT_BUILD_NAMESPACE="kctfmp-s2i"     OPENSHIFT_BUILD_SOURCE="https://github.com/whynot108/DO180-apps"     OPENSHIFT_BUILD_REFERENCE="s2i1"     OPENSHIFT_BUILD_COMMIT="f7cd8963ef353d9173c3a21dcccf402f3616840b"
+STEP 4: USER root
+STEP 5: COPY upload/src /tmp/src
+STEP 6: RUN chown -R 1001:0 /tmp/src
+time="2022-02-15T21:10:06Z" level=warning msg="Path \"/run/secrets/etc-pki-entitlement\" from \"/etc/containers/mounts.conf\" doesn't exist, skipping"
+time="2022-02-15T21:10:06Z" level=warning msg="Path \"/run/secrets/redhat.repo\" from \"/etc/containers/mounts.conf\" doesn't exist, skipping"
+STEP 7: USER 1001
+STEP 8: RUN /usr/libexec/s2i/assemble
+time="2022-02-15T21:10:07Z" level=warning msg="Path \"/run/secrets/etc-pki-entitlement\" from \"/etc/containers/mounts.conf\" doesn't exist, skipping"
+time="2022-02-15T21:10:07Z" level=warning msg="Path \"/run/secrets/redhat.repo\" from \"/etc/containers/mounts.conf\" doesn't exist, skipping"
+---> Installing application source...
+=> sourcing 20-copy-config.sh ...
+---> 21:10:07     Processing additional arbitrary httpd configuration provided by s2i ...
+=> sourcing 00-documentroot.conf ...
+=> sourcing 50-mpm-tuning.conf ...
+=> sourcing 40-ssl-certs.sh ...
+STEP 9: CMD /usr/libexec/s2i/run
+STEP 10: COMMIT temp.builder.openshift.io/kctfmp-s2i/php-helloworld-1:1da7f53d
+Getting image source signatures
+Copying blob sha256:d9862ecc000249411677fa7578720eb7ffb04ccbc196f955c534ae774d7d5f8f
+Copying blob sha256:66af4174421c064eab02a61d86aef5b7703f0481fc2e33e7ac5ebddab8d2ed32
+Copying blob sha256:436964b8b0703231a2ca156e94f904c62e461f6ff491d960e6044a2744390605
+Copying blob sha256:1361d8ae82ac22192bcc8956f5176ae8e983578c8e6f0736e5df7687c3aaf83f
+Copying blob sha256:a513cce1a97d99fafe0795c3f2a1c73c66e587770e325053f5041ab52d45cfab
+Copying blob sha256:a5143025b16915041c8c22011031654810571fba82a5239644610419b6bcf97c
+Copying config sha256:30a8d56e1c7d4184747f27345784647eaba9913382a67c3c3607d1e08d02c6d1
+Writing manifest to image destination
+Storing signatures
+--> 30a8d56e1c7
+30a8d56e1c7d4184747f27345784647eaba9913382a67c3c3607d1e08d02c6d1
+
+Pushing image image-registry.openshift-image-registry.svc:5000/kctfmp-s2i/php-helloworld:latest ...
+Getting image source signatures
+Copying blob sha256:a5143025b16915041c8c22011031654810571fba82a5239644610419b6bcf97c
+Copying blob sha256:20e380a796ab6ac40a52d8a2b84a8913b84d7d8e632fbe92fe727a614ee7e6da
+Copying blob sha256:771ccdfd650727b418599ec759353ae8bb2a36d80cf5b72bd021aa9ae1dc1eea
+Copying blob sha256:1cd88f0a187e2d8a2bf14bf492d94652e702e4f3db8c9e54fd3c35db8737f82c
+Copying blob sha256:3a4f63a9dc197ae48cddc08a53e02748a45d7847767f837b8cc7b1c0b93f9411
+Copying blob sha256:f15ada16b67177f40249f31517db7fe4488a3f05e602a7b6f7402de6d853b9a3
+Copying config sha256:30a8d56e1c7d4184747f27345784647eaba9913382a67c3c3607d1e08d02c6d1
+Writing manifest to image destination
+Storing signatures
+Successfully pushed image-registry.openshift-image-registry.svc:5000/kctfmp-s2i/php-helloworld@sha256:b614fb3dac74bce5642b5d0f65deb4c6173999117975cfe6b3528f252b2b86e4
+Push successful
+[student@workstation DO180-apps]$ 
+[student@workstation DO180-apps]$ 
+[student@workstation DO180-apps]$ oc describe deployment/php-helloworld
+Name:                   php-helloworld
+Namespace:              kctfmp-s2i
+CreationTimestamp:      Tue, 15 Feb 2022 16:09:37 -0500
+Labels:                 app=php-helloworld
+                        app.kubernetes.io/component=php-helloworld
+                        app.kubernetes.io/instance=php-helloworld
+Annotations:            deployment.kubernetes.io/revision: 2
+                        image.openshift.io/triggers:
+                          [{"from":{"kind":"ImageStreamTag","name":"php-helloworld:latest"},"fieldPath":"spec.template.spec.containers[?(@.name==\"php-helloworld\")...
+                        openshift.io/generated-by: OpenShiftNewApp
+Selector:               deployment=php-helloworld
+Replicas:               1 desired | 1 updated | 1 total | 1 available | 0 unavailable
+StrategyType:           RollingUpdate
+MinReadySeconds:        0
+RollingUpdateStrategy:  25% max unavailable, 25% max surge
+Pod Template:
+  Labels:       deployment=php-helloworld
+  Annotations:  openshift.io/generated-by: OpenShiftNewApp
+  Containers:
+   php-helloworld:
+    Image:        image-registry.openshift-image-registry.svc:5000/kctfmp-s2i/php-helloworld@sha256:b614fb3dac74bce5642b5d0f65deb4c6173999117975cfe6b3528f252b2b86e4
+    Ports:        8443/TCP, 8080/TCP
+    Host Ports:   0/TCP, 0/TCP
+    Environment:  <none>
+    Mounts:       <none>
+  Volumes:        <none>
+Conditions:
+  Type           Status  Reason
+  ----           ------  ------
+  Available      True    MinimumReplicasAvailable
+  Progressing    True    NewReplicaSetAvailable
+OldReplicaSets:  <none>
+NewReplicaSet:   php-helloworld-6849cc9db (1/1 replicas created)
+Events:
+  Type    Reason             Age    From                   Message
+  ----    ------             ----   ----                   -------
+  Normal  ScalingReplicaSet  4m57s  deployment-controller  Scaled up replica set php-helloworld-5d4fb745cd to 1
+  Normal  ScalingReplicaSet  4m25s  deployment-controller  Scaled up replica set php-helloworld-6849cc9db to 1
+  Normal  ScalingReplicaSet  4m21s  deployment-controller  Scaled down replica set php-helloworld-5d4fb745cd to 0
+[student@workstation DO180-apps]$ 
+[student@workstation DO180-apps]$ 
+[student@workstation DO180-apps]$ oc expose service php-helloworld \
+> --name ${RHT_OCP4_DEV_USER}-helloworld
+route.route.openshift.io/kctfmp-helloworld exposed
+[student@workstation DO180-apps]$ 
+[student@workstation DO180-apps]$ oc get route -o jsonpath='{..spec.host}{"\n"}'
+kctfmp-helloworld-kctfmp-s2i.apps.na46.prod.nextcle.com
+[student@workstation DO180-apps]$ 
+[student@workstation DO180-apps]$ curl -s \
+> ${RHT_OCP4_DEV_USER}-helloworld-${RHT_OCP4_DEV_USER}-s2i.\
+> ${RHT_OCP4_WILDCARD_DOMAIN}
+Hello, World! php version is 7.3.29
+[student@workstation DO180-apps]$ 
+
+[student@workstation DO180-apps]$ cd ~/DO180-apps/php-helloworld
+[student@workstation php-helloworld]$ 
+[student@workstation php-helloworld]$ vi index.php 
+[student@workstation php-helloworld]$ 
+[student@workstation php-helloworld]$ git add .
+[student@workstation php-helloworld]$ 
+[student@workstation php-helloworld]$ git status
+On branch s2i1
+Your branch is up to date with 'origin/s2i1'.
+
+Changes to be committed:
+  (use "git restore --staged <file>..." to unstage)
+	modified:   index.php
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	../-d
+
+[student@workstation php-helloworld]$ 
+[student@workstation php-helloworld]$ git commit -m "Chagned index page contents."
+[s2i1 d1bf708] Chagned index page contents.
+ 1 file changed, 1 insertion(+)
+[student@workstation php-helloworld]$ 
+[student@workstation php-helloworld]$ git push origin s2i1
+Enumerating objects: 7, done.
+Counting objects: 100% (7/7), done.
+Delta compression using up to 2 threads
+Compressing objects: 100% (3/3), done.
+Writing objects: 100% (4/4), 419 bytes | 419.00 KiB/s, done.
+Total 4 (delta 1), reused 0 (delta 0), pack-reused 0
+remote: Resolving deltas: 100% (1/1), completed with 1 local object.
+To https://github.com/whynot108/DO180-apps
+   f7cd896..d1bf708  s2i1 -> s2i1
+[student@workstation php-helloworld]$ 
+[student@workstation php-helloworld]$ 
+[student@workstation php-helloworld]$ oc start-build php-helloworld
+build.build.openshift.io/php-helloworld-2 started
+[student@workstation php-helloworld]$ 
+[student@workstation php-helloworld]$ oc logs php-helloworld-2-build -f
+Caching blobs under "/var/cache/blobs".
+Getting image source signatures
+Copying blob sha256:3a4f63a9dc197ae48cddc08a53e02748a45d7847767f837b8cc7b1c0b93f9411
+Copying blob sha256:1cd88f0a187e2d8a2bf14bf492d94652e702e4f3db8c9e54fd3c35db8737f82c
+Copying blob sha256:771ccdfd650727b418599ec759353ae8bb2a36d80cf5b72bd021aa9ae1dc1eea
+Copying blob sha256:f15ada16b67177f40249f31517db7fe4488a3f05e602a7b6f7402de6d853b9a3
+Copying blob sha256:20e380a796ab6ac40a52d8a2b84a8913b84d7d8e632fbe92fe727a614ee7e6da
+Copying config sha256:20f38f7f47fcad275e8b456edbc0a8fc568f2a18fef5b7b2ee8bdb2803c1bb7e
+Writing manifest to image destination
+Storing signatures
+Generating dockerfile with builder image image-registry.openshift-image-registry.svc:5000/openshift/php@sha256:06e7d909830c4fd48b31baba7d5cff2c23c73fb268996f69559393c6a9007d74
+STEP 1: FROM image-registry.openshift-image-registry.svc:5000/openshift/php@sha256:06e7d909830c4fd48b31baba7d5cff2c23c73fb268996f69559393c6a9007d74
+STEP 2: LABEL "io.openshift.build.commit.date"="Tue Feb 15 16:19:41 2022 -0500"       "io.openshift.build.commit.id"="d1bf70856290701ac311ba9c2c427dfeab4ee5ed"       "io.openshift.build.commit.ref"="s2i1"       "io.openshift.build.commit.message"="Chagned index page contents."       "io.openshift.build.source-location"="https://github.com/whynot108/DO180-apps"       "io.openshift.build.source-context-dir"="php-helloworld"       "io.openshift.build.image"="image-registry.openshift-image-registry.svc:5000/openshift/php@sha256:06e7d909830c4fd48b31baba7d5cff2c23c73fb268996f69559393c6a9007d74"       "io.openshift.build.commit.author"="Student User <student@workstation.lab.example.com>"
+STEP 3: ENV OPENSHIFT_BUILD_NAME="php-helloworld-2"     OPENSHIFT_BUILD_NAMESPACE="kctfmp-s2i"     OPENSHIFT_BUILD_SOURCE="https://github.com/whynot108/DO180-apps"     OPENSHIFT_BUILD_REFERENCE="s2i1"     OPENSHIFT_BUILD_COMMIT="d1bf70856290701ac311ba9c2c427dfeab4ee5ed"
+STEP 4: USER root
+STEP 5: COPY upload/src /tmp/src
+STEP 6: RUN chown -R 1001:0 /tmp/src
+time="2022-02-15T21:21:28Z" level=warning msg="Path \"/run/secrets/etc-pki-entitlement\" from \"/etc/containers/mounts.conf\" doesn't exist, skipping"
+time="2022-02-15T21:21:28Z" level=warning msg="Path \"/run/secrets/redhat.repo\" from \"/etc/containers/mounts.conf\" doesn't exist, skipping"
+STEP 7: USER 1001
+STEP 8: RUN /usr/libexec/s2i/assemble
+time="2022-02-15T21:21:29Z" level=warning msg="Path \"/run/secrets/etc-pki-entitlement\" from \"/etc/containers/mounts.conf\" doesn't exist, skipping"
+time="2022-02-15T21:21:29Z" level=warning msg="Path \"/run/secrets/redhat.repo\" from \"/etc/containers/mounts.conf\" doesn't exist, skipping"
+---> Installing application source...
+=> sourcing 20-copy-config.sh ...
+---> 21:21:30     Processing additional arbitrary httpd configuration provided by s2i ...
+=> sourcing 00-documentroot.conf ...
+=> sourcing 50-mpm-tuning.conf ...
+=> sourcing 40-ssl-certs.sh ...
+STEP 9: CMD /usr/libexec/s2i/run
+STEP 10: COMMIT temp.builder.openshift.io/kctfmp-s2i/php-helloworld-2:270e6089
+Getting image source signatures
+Copying blob sha256:d9862ecc000249411677fa7578720eb7ffb04ccbc196f955c534ae774d7d5f8f
+Copying blob sha256:66af4174421c064eab02a61d86aef5b7703f0481fc2e33e7ac5ebddab8d2ed32
+Copying blob sha256:436964b8b0703231a2ca156e94f904c62e461f6ff491d960e6044a2744390605
+Copying blob sha256:1361d8ae82ac22192bcc8956f5176ae8e983578c8e6f0736e5df7687c3aaf83f
+Copying blob sha256:a513cce1a97d99fafe0795c3f2a1c73c66e587770e325053f5041ab52d45cfab
+Copying blob sha256:abf6b9f92a352d085f834ad0a8bd700a88bde2d413714c7ea73e394fc7c45047
+Copying config sha256:f82a57beba505018f33a051103035d37d1a0c4869111886b640589de8c7d1005
+Writing manifest to image destination
+Storing signatures
+--> f82a57beba5
+f82a57beba505018f33a051103035d37d1a0c4869111886b640589de8c7d1005
+Getting image source signatures
+
+Pushing image image-registry.openshift-image-registry.svc:5000/kctfmp-s2i/php-helloworld:latest ...
+Copying blob sha256:771ccdfd650727b418599ec759353ae8bb2a36d80cf5b72bd021aa9ae1dc1eea
+Copying blob sha256:f15ada16b67177f40249f31517db7fe4488a3f05e602a7b6f7402de6d853b9a3
+Copying blob sha256:20e380a796ab6ac40a52d8a2b84a8913b84d7d8e632fbe92fe727a614ee7e6da
+Copying blob sha256:1cd88f0a187e2d8a2bf14bf492d94652e702e4f3db8c9e54fd3c35db8737f82c
+Copying blob sha256:3a4f63a9dc197ae48cddc08a53e02748a45d7847767f837b8cc7b1c0b93f9411
+Copying blob sha256:abf6b9f92a352d085f834ad0a8bd700a88bde2d413714c7ea73e394fc7c45047
+Copying config sha256:f82a57beba505018f33a051103035d37d1a0c4869111886b640589de8c7d1005
+Writing manifest to image destination
+Storing signatures
+Successfully pushed image-registry.openshift-image-registry.svc:5000/kctfmp-s2i/php-helloworld@sha256:59a189b4b636203a064ca710bb49f065affb6678a6d6992da4e4b9d058ff3152
+Push successful
+[student@workstation php-helloworld]$ 
+[student@workstation php-helloworld]$ 
+[student@workstation php-helloworld]$ oc get pods
+NAME                              READY   STATUS      RESTARTS   AGE
+php-helloworld-1-build            0/1     Completed   0          13m
+php-helloworld-2-build            0/1     Completed   0          2m31s
+php-helloworld-86895c7566-85nd5   1/1     Running     0          118s
+[student@workstation php-helloworld]$ 
+[student@workstation php-helloworld]$ curl -s \
+> ${RHT_OCP4_DEV_USER}-helloworld-${RHT_OCP4_DEV_USER}-s2i.\
+> ${RHT_OCP4_WILDCARD_DOMAIN}
+Hello, World! php version is 7.3.29
+A change is a coming!
+[student@workstation php-helloworld]$ 
+

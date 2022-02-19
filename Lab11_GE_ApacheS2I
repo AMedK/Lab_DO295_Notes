@@ -1,0 +1,669 @@
+After you have tested the application container image locally, you can copy the S2I builder
+image to a registry for consumption. Before deploying applications to an RHOCP cluster using
+the builder image, you must create an image stream based on the builder image using the oc
+import-image command. You can then use the image stream to create applications in RHOCP.
+
+
+[student@workstation ~]$ 
+[student@workstation ~]$ 
+[student@workstation ~]$ lab apache-s2i start
+
+Checking prerequisites for Guided Exercise: Creating an S2I Builder Image
+
+ Checking local clone of the applications repository:
+ · Folder '/home/student/DO288-apps' is a git repo.............  SUCCESS
+ · Git repo '/home/student/DO288-apps' has no pending changes..  SUCCESS
+ · Project 'html-helloworld' exists in student's GitHub fork...  SUCCESS
+ Checking for conflicts with existing OpenShift projects:
+ · Project 'kctfmp-apache-s2i' is absent.......................  SUCCESS
+ Checking for conflicts with existing local containers:
+ · Container 'test' is absent..................................  SUCCESS
+ Verifying the OpenShift cluster is running:
+ · Log in on OpenShift.........................................  SUCCESS
+ · Check master node na46-jffdq-master-0 is ready..............  SUCCESS
+ · Check master node na46-jffdq-master-1 is ready..............  SUCCESS
+ · Check master node na46-jffdq-master-2 is ready..............  SUCCESS
+ · Check the internal registry is up and running...............  SUCCESS
+
+Setting up the classroom for Guided Exercise: Creating an S2I Builder Image
+
+ · Download exercise files.....................................  SUCCESS
+ · Download solution files.....................................  SUCCESS
+
+Overall start status...........................................  SUCCESS
+
+[student@workstation ~]$ 
+[student@workstation ~]$ 
+[student@workstation ~]$ s2i version
+s2i v1.3.1
+[student@workstation ~]$ 
+[student@workstation ~]$ s2i create s2i-do288-httpd s2i-do288-httpd
+[student@workstation ~]$ 
+[student@workstation ~]$ tree s2i-do288-httpd
+s2i-do288-httpd
+├── Dockerfile
+├── Makefile
+├── README.md
+├── s2i
+│   └── bin
+│       ├── assemble
+│       ├── run
+│       ├── save-artifacts
+│       └── usage
+└── test
+    ├── run
+    └── test-app
+        └── index.html
+
+4 directories, 9 files
+[student@workstation ~]$ 
+[student@workstation ~]$ 
+[student@workstation ~]$ cat ~/DO288/labs/apache-s2i/Containerfile
+FROM registry.access.redhat.com/ubi8/ubi:8.4
+
+# Generic labels
+LABEL Component="httpd" \
+      Name="s2i-do288-httpd" \
+      Version="1.0" \
+      Release="1"
+
+# Labels consumed by RHOCP
+LABEL io.k8s.description="A basic Apache HTTP Server S2I builder image" \
+      io.k8s.display-name="Apache HTTP Server S2I builder image for DO288" \
+      io.openshift.expose-services="8080:http" \
+      io.openshift.s2i.scripts-url="image:///usr/libexec/s2i"
+
+# This label is used to categorize this image as a builder image in the
+# RHOCP web console.
+LABEL io.openshift.tags="builder, httpd, httpd24"
+
+# Apache HTTP Server DocRoot
+ENV DOCROOT /var/www/html
+
+
+RUN   yum install -y --nodocs --disableplugin=subscription-manager httpd && \
+      yum clean all --disableplugin=subscription-manager -y && \
+      echo "This is the default index page from the s2i-do288-httpd S2I builder image." > ${DOCROOT}/index.html
+
+# Change web server port to 8080
+RUN sed -i "s/Listen 80/Listen 8080/g" /etc/httpd/conf/httpd.conf
+
+# Copy the S2I scripts to the default location indicated by the
+# io.openshift.s2i.scripts-url LABEL (default is /usr/libexec/s2i)
+COPY ./s2i/bin/ /usr/libexec/s2i
+
+ENV APP_DIRS /var/www/ /run/httpd/ /etc/httpd/logs/ /var/log/httpd/
+
+RUN chown -R 1001:1001 $APP_DIRS && \
+    chgrp -R 0 $APP_DIRS && \
+    chmod -R g=u $APP_DIRS && \
+    chmod +x /usr/libexec/s2i/assemble /usr/libexec/s2i/run /usr/libexec/s2i/usage
+
+# This default user is created in the rhel7 image
+USER 1001
+
+EXPOSE 8080
+
+CMD ["usage"]
+[student@workstation ~]$ 
+[student@workstation ~]$ 
+[student@workstation ~]$ rm ~/s2i-do288-httpd/Dockerfile
+[student@workstation ~]$ 
+[student@workstation ~]$ cp ~/DO288/labs/apache-s2i/Containerfile ~/s2i-do288-httpd/
+[student@workstation ~]$ 
+[student@workstation ~]$ cp -Rv ~/DO288/labs/apache-s2i/s2i ~/s2i-do288-httpd/
+'/home/student/DO288/labs/apache-s2i/s2i/bin/assemble' -> '/home/student/s2i-do288-httpd/s2i/bin/assemble'
+'/home/student/DO288/labs/apache-s2i/s2i/bin/usage' -> '/home/student/s2i-do288-httpd/s2i/bin/usage'
+'/home/student/DO288/labs/apache-s2i/s2i/bin/run' -> '/home/student/s2i-do288-httpd/s2i/bin/run'
+[student@workstation ~]$ 
+[student@workstation ~]$ rm -f ~/s2i-do288-httpd/s2i/bin/save-artifacts
+[student@workstation ~]$ 
+[student@workstation ~]$ cd s2i-do288-httpd
+[student@workstation s2i-do288-httpd]$ 
+[student@workstation s2i-do288-httpd]$ podman build -t s2i-do288-httpd .
+STEP 1: FROM registry.access.redhat.com/ubi8/ubi:8.4
+Getting image source signatures
+Checking if image destination supports signatures
+Copying blob eac1b95df832 done  
+Copying blob 47aa3ed2034c done  
+Copying config b1e63aaae5 done  
+Writing manifest to image destination
+Storing signatures
+STEP 2: LABEL Component="httpd"       Name="s2i-do288-httpd"       Version="1.0"       Release="1"
+--> db49b2c3c32
+STEP 3: LABEL io.k8s.description="A basic Apache HTTP Server S2I builder image"       io.k8s.display-name="Apache HTTP Server S2I builder image for DO288"       io.openshift.expose-services="8080:http"       io.openshift.s2i.scripts-url="image:///usr/libexec/s2i"
+--> 65ffb3f43d7
+STEP 4: LABEL io.openshift.tags="builder, httpd, httpd24"
+--> eb66825b4a4
+STEP 5: ENV DOCROOT /var/www/html
+--> f53ee19fcb1
+STEP 6: RUN   yum install -y --nodocs --disableplugin=subscription-manager httpd &&       yum clean all --disableplugin=subscription-manager -y &&       echo "This is the default index page from the s2i-do288-httpd S2I builder image." > ${DOCROOT}/index.html
+Red Hat Universal Base Image 8 (RPMs) - BaseOS  2.5 MB/s | 796 kB     00:00    
+Red Hat Universal Base Image 8 (RPMs) - AppStre  33 MB/s | 2.6 MB     00:00    
+Red Hat Universal Base Image 8 (RPMs) - CodeRea 310 kB/s |  16 kB     00:00    
+Dependencies resolved.
+==============================================================================================
+ Package              Arch    Version                                   Repository        Size
+==============================================================================================
+Installing:
+ httpd                x86_64  2.4.37-43.module+el8.5.0+13806+b30d9eec.1 ubi-8-appstream  1.4 M
+Installing dependencies:
+ apr                  x86_64  1.6.3-12.el8                              ubi-8-appstream  130 k
+ apr-util             x86_64  1.6.1-6.el8                               ubi-8-appstream  105 k
+ httpd-filesystem     noarch  2.4.37-43.module+el8.5.0+13806+b30d9eec.1 ubi-8-appstream   40 k
+ httpd-tools          x86_64  2.4.37-43.module+el8.5.0+13806+b30d9eec.1 ubi-8-appstream  107 k
+ mailcap              noarch  2.1.48-3.el8                              ubi-8-baseos      39 k
+ mod_http2            x86_64  1.15.7-3.module+el8.4.0+8625+d397f3da     ubi-8-appstream  154 k
+ redhat-logos-httpd   noarch  84.5-1.el8                                ubi-8-baseos      29 k
+Installing weak dependencies:
+ apr-util-bdb         x86_64  1.6.1-6.el8                               ubi-8-appstream   25 k
+ apr-util-openssl     x86_64  1.6.1-6.el8                               ubi-8-appstream   27 k
+Enabling module streams:
+ httpd                        2.4                                                             
+
+Transaction Summary
+==============================================================================================
+Install  10 Packages
+
+Total download size: 2.0 M
+Installed size: 5.5 M
+Downloading Packages:
+(1/10): redhat-logos-httpd-84.5-1.el8.noarch.rp 1.0 MB/s |  29 kB     00:00    
+(2/10): mailcap-2.1.48-3.el8.noarch.rpm         992 kB/s |  39 kB     00:00    
+(3/10): apr-util-1.6.1-6.el8.x86_64.rpm         8.6 MB/s | 105 kB     00:00    
+(4/10): mod_http2-1.15.7-3.module+el8.4.0+8625+ 3.5 MB/s | 154 kB     00:00    
+(5/10): apr-util-openssl-1.6.1-6.el8.x86_64.rpm 5.4 MB/s |  27 kB     00:00    
+(6/10): apr-util-bdb-1.6.1-6.el8.x86_64.rpm     7.4 MB/s |  25 kB     00:00    
+(7/10): httpd-tools-2.4.37-43.module+el8.5.0+13  25 MB/s | 107 kB     00:00    
+(8/10): httpd-filesystem-2.4.37-43.module+el8.5 9.7 MB/s |  40 kB     00:00    
+(9/10): apr-1.6.3-12.el8.x86_64.rpm              19 MB/s | 130 kB     00:00    
+(10/10): httpd-2.4.37-43.module+el8.5.0+13806+b  48 MB/s | 1.4 MB     00:00    
+--------------------------------------------------------------------------------
+Total                                            24 MB/s | 2.0 MB     00:00     
+Running transaction check
+Transaction check succeeded.
+Running transaction test
+Transaction test succeeded.
+Running transaction
+  Preparing        :                                                        1/1 
+  Installing       : apr-1.6.3-12.el8.x86_64                               1/10 
+  Running scriptlet: apr-1.6.3-12.el8.x86_64                               1/10 
+  Installing       : apr-util-openssl-1.6.1-6.el8.x86_64                   2/10 
+  Installing       : apr-util-bdb-1.6.1-6.el8.x86_64                       3/10 
+  Installing       : apr-util-1.6.1-6.el8.x86_64                           4/10 
+  Running scriptlet: apr-util-1.6.1-6.el8.x86_64                           4/10 
+  Installing       : httpd-tools-2.4.37-43.module+el8.5.0+13806+b30d9ee    5/10 
+  Running scriptlet: httpd-filesystem-2.4.37-43.module+el8.5.0+13806+b3    6/10 
+  Installing       : httpd-filesystem-2.4.37-43.module+el8.5.0+13806+b3    6/10 
+  Installing       : mailcap-2.1.48-3.el8.noarch                           7/10 
+  Installing       : redhat-logos-httpd-84.5-1.el8.noarch                  8/10 
+  Installing       : mod_http2-1.15.7-3.module+el8.4.0+8625+d397f3da.x8    9/10 
+  Installing       : httpd-2.4.37-43.module+el8.5.0+13806+b30d9eec.1.x8   10/10 
+  Running scriptlet: httpd-2.4.37-43.module+el8.5.0+13806+b30d9eec.1.x8   10/10 
+  Verifying        : redhat-logos-httpd-84.5-1.el8.noarch                  1/10 
+  Verifying        : mailcap-2.1.48-3.el8.noarch                           2/10 
+  Verifying        : mod_http2-1.15.7-3.module+el8.4.0+8625+d397f3da.x8    3/10 
+  Verifying        : apr-util-1.6.1-6.el8.x86_64                           4/10 
+  Verifying        : apr-util-openssl-1.6.1-6.el8.x86_64                   5/10 
+  Verifying        : apr-util-bdb-1.6.1-6.el8.x86_64                       6/10 
+  Verifying        : httpd-tools-2.4.37-43.module+el8.5.0+13806+b30d9ee    7/10 
+  Verifying        : apr-1.6.3-12.el8.x86_64                               8/10 
+  Verifying        : httpd-filesystem-2.4.37-43.module+el8.5.0+13806+b3    9/10 
+  Verifying        : httpd-2.4.37-43.module+el8.5.0+13806+b30d9eec.1.x8   10/10 
+Installed products updated.
+
+Installed:
+  apr-1.6.3-12.el8.x86_64                                                       
+  apr-util-1.6.1-6.el8.x86_64                                                   
+  apr-util-bdb-1.6.1-6.el8.x86_64                                               
+  apr-util-openssl-1.6.1-6.el8.x86_64                                           
+  httpd-2.4.37-43.module+el8.5.0+13806+b30d9eec.1.x86_64                        
+  httpd-filesystem-2.4.37-43.module+el8.5.0+13806+b30d9eec.1.noarch             
+  httpd-tools-2.4.37-43.module+el8.5.0+13806+b30d9eec.1.x86_64                  
+  mailcap-2.1.48-3.el8.noarch                                                   
+  mod_http2-1.15.7-3.module+el8.4.0+8625+d397f3da.x86_64                        
+  redhat-logos-httpd-84.5-1.el8.noarch                                          
+
+Complete!
+25 files removed
+--> db0bcac29d5
+STEP 7: RUN sed -i "s/Listen 80/Listen 8080/g" /etc/httpd/conf/httpd.conf
+--> f3b2dd867d8
+STEP 8: COPY ./s2i/bin/ /usr/libexec/s2i
+--> 5c80077c8ac
+STEP 9: ENV APP_DIRS /var/www/ /run/httpd/ /etc/httpd/logs/ /var/log/httpd/
+--> 6e1a00701bc
+STEP 10: RUN chown -R 1001:1001 $APP_DIRS &&     chgrp -R 0 $APP_DIRS &&     chmod -R g=u $APP_DIRS &&     chmod +x /usr/libexec/s2i/assemble /usr/libexec/s2i/run /usr/libexec/s2i/usage
+--> c845fb99d2c
+STEP 11: USER 1001
+--> 3d2dac174e0
+STEP 12: EXPOSE 8080
+--> cc34717502c
+STEP 13: CMD ["usage"]
+STEP 14: COMMIT s2i-do288-httpd
+--> f8d5f1bc40a
+f8d5f1bc40af242a8c3802afb9bf52ad652cf8310c359b2a8fdd4ae8cdb8a14c
+[student@workstation s2i-do288-httpd]$ 
+[student@workstation s2i-do288-httpd]$ podman images
+REPOSITORY                                       TAG     IMAGE ID      CREATED         SIZE
+localhost/s2i-do288-httpd                        latest  f8d5f1bc40af  10 seconds ago  254 MB
+localhost/do288-apache                           latest  b181a0e9f37e  25 hours ago    236 MB
+quay.io/andrew_xu/do288-apache                   latest  b181a0e9f37e  25 hours ago    236 MB
+registry.access.redhat.com/rhscl/httpd-24-rhel7  latest  76f66bb29538  3 weeks ago     333 MB
+registry.access.redhat.com/ubi8/ubi              8.4     b1e63aaae5cf  3 months ago    233 MB
+quay.io/andrew_xu/ubi-sleep                      1.0     3c63b4841913  2 years ago     216 MB
+quay.io/redhattraining/httpd-parent              latest  4346d3cace25  2 years ago     236 MB
+[student@workstation s2i-do288-httpd]$ 
+[student@workstation s2i-do288-httpd]$ 
+[student@workstation s2i-do288-httpd]$ cat ~/DO288/labs/apache-s2i/index.html
+This is the index page from the app
+[student@workstation s2i-do288-httpd]$ 
+[student@workstation s2i-do288-httpd]$ cp ~/DO288/labs/apache-s2i/index.html ~/s2i-do288-httpd/test/test-app/
+[student@workstation s2i-do288-httpd]$ 
+[student@workstation s2i-do288-httpd]$ mkdir ~/s2i-sample-app
+[student@workstation s2i-do288-httpd]$ 
+[student@workstation s2i-do288-httpd]$ s2i build test/test-app/ \
+> s2i-do288-httpd s2i-sample-app \
+> --as-dockerfile ~/s2i-sample-app/Containerfile
+Application dockerfile generated in /home/student/s2i-sample-app/Containerfile
+[student@workstation s2i-do288-httpd]$ 
+[student@workstation s2i-do288-httpd]$ cd ~/s2i-sample-app
+[student@workstation s2i-sample-app]$ 
+[student@workstation s2i-sample-app]$ tree .
+.
+├── Containerfile
+├── downloads
+│   ├── defaultScripts
+│   └── scripts
+└── upload
+    ├── scripts
+    └── src
+        └── index.html
+
+6 directories, 2 files
+[student@workstation s2i-sample-app]$ 
+[student@workstation s2i-sample-app]$ ^C
+[student@workstation s2i-sample-app]$ ^C
+[student@workstation s2i-sample-app]$ cat Containerfile
+FROM s2i-do288-httpd
+LABEL "io.k8s.display-name"="s2i-sample-app" \
+      "io.openshift.s2i.build.image"="s2i-do288-httpd" \
+      "io.openshift.s2i.build.source-location"="test/test-app/"
+
+USER root
+# Copying in source code
+COPY upload/src /tmp/src
+# Change file ownership to the assemble user. Builder image must support chown command.
+RUN chown -R 1001:0 /tmp/src
+USER 1001
+# Assemble script sourced from builder image based on user input or image metadata.
+# If this file does not exist in the image, the build will fail.
+RUN /usr/libexec/s2i/assemble
+# Run script sourced from builder image based on user input or image metadata.
+# If this file does not exist in the image, the build will fail.
+CMD /usr/libexec/s2i/run
+[student@workstation s2i-sample-app]$ 
+[student@workstation s2i-sample-app]$ 
+[student@workstation s2i-sample-app]$ podman build \
+> -t s2i-sample-app .
+STEP 1: FROM s2i-do288-httpd
+STEP 2: LABEL "io.k8s.display-name"="s2i-sample-app"       "io.openshift.s2i.build.image"="s2i-do288-httpd"       "io.openshift.s2i.build.source-location"="test/test-app/"
+--> 2c07a05ba14
+STEP 3: USER root
+--> dfa716f5d34
+STEP 4: COPY upload/src /tmp/src
+--> a644298b842
+STEP 5: RUN chown -R 1001:0 /tmp/src
+--> 36e211b560f
+STEP 6: USER 1001
+--> 42f012cc862
+STEP 7: RUN /usr/libexec/s2i/assemble
+---> Copying source files to web server directory...
+--> 493f179629e
+STEP 8: CMD /usr/libexec/s2i/run
+STEP 9: COMMIT s2i-sample-app
+--> 80644c30b7a
+80644c30b7a6f807d86fc618e324a8589da2d0607562de7bd0b9141d63b65d62
+[student@workstation s2i-sample-app]$ 
+[student@workstation s2i-sample-app]$ pod images
+bash: pod: command not found...
+[student@workstation s2i-sample-app]$ podman images
+REPOSITORY                                       TAG     IMAGE ID      CREATED         SIZE
+localhost/s2i-sample-app                         latest  80644c30b7a6  24 seconds ago  254 MB
+localhost/s2i-do288-httpd                        latest  f8d5f1bc40af  4 minutes ago   254 MB
+quay.io/andrew_xu/do288-apache                   latest  b181a0e9f37e  25 hours ago    236 MB
+localhost/do288-apache                           latest  b181a0e9f37e  25 hours ago    236 MB
+registry.access.redhat.com/rhscl/httpd-24-rhel7  latest  76f66bb29538  3 weeks ago     333 MB
+registry.access.redhat.com/ubi8/ubi              8.4     b1e63aaae5cf  3 months ago    233 MB
+quay.io/andrew_xu/ubi-sleep                      1.0     3c63b4841913  2 years ago     216 MB
+quay.io/redhattraining/httpd-parent              latest  4346d3cace25  2 years ago     236 MB
+[student@workstation s2i-sample-app]$ 
+[student@workstation s2i-sample-app]$ 
+[student@workstation s2i-sample-app]$ podman run --name test -u 1234 \
+> -p 8080:8080 -d s2i-sample-app
+6e43fd9f2602555d29c33675765e20c6ac505635cb47e2756a0db9d0fa315c20
+[student@workstation s2i-sample-app]$ 
+[student@workstation s2i-sample-app]$ podman ps
+CONTAINER ID  IMAGE                            COMMAND               CREATED         STATUS             PORTS                   NAMES
+6e43fd9f2602  localhost/s2i-sample-app:latest  /bin/sh -c /usr/l...  11 seconds ago  Up 12 seconds ago  0.0.0.0:8080->8080/tcp  test
+[student@workstation s2i-sample-app]$ 
+[student@workstation s2i-sample-app]$ curl http://localhost:8080
+This is the index page from the app
+[student@workstation s2i-sample-app]$ 
+[student@workstation s2i-sample-app]$ podman stop test
+6e43fd9f2602555d29c33675765e20c6ac505635cb47e2756a0db9d0fa315c20
+[student@workstation s2i-sample-app]$ 
+[student@workstation s2i-sample-app]$ 
+[student@workstation s2i-sample-app]$ 
+[student@workstation s2i-sample-app]$ source /usr/local/etc/ocp4.config
+[student@workstation s2i-sample-app]$ 
+[student@workstation s2i-sample-app]$ podman login \
+> -u ${RHT_OCP4_QUAY_USER} quay.io
+Password: 
+Login Succeeded!
+[student@workstation s2i-sample-app]$ 
+[student@workstation s2i-sample-app]$ 
+[student@workstation s2i-sample-app]$ skopeo copy \
+> containers-storage:localhost/s2i-do288-httpd \
+> docker://quay.io/${RHT_OCP4_QUAY_USER}/s2i-do288-httpd
+Getting image source signatures
+Copying blob e367bc3f151d [--------------------------------------] 8.0b / 20.0MiB
+Copying blob e6985957061c [--------------------------------------] 8.0b / 15.0KiB
+Copying blob 0467e76cefb7 [--------------------------------------] 8.0b / 6.0KiB
+Copying blob 525ed45dbdb1 [--------------------------------------] 8.0b / 20.0KiB
+Copying blob 23a96842e380 [--------------------------------------] 8.0b / 6.5KiB
+Copying blob 5bc03dec6239 [--------------------------------------] 8.0b / 222.5MiB
+FATA[0001] Error writing blob: Error initiating layer upload to /v2/andrew_xu/s2i-do288-httpd/blobs/uploads/ in quay.io: unauthorized: access to the requested resource is not authorized 
+ERRO[0001] exit status 1                                
+[student@workstation s2i-sample-app]$ 
+[student@workstation s2i-sample-app]$ skopeo copy containers-storage:localhost/s2i-do288-httpd docker://quay.io/${RHT_OCP4_QUAY_USER}/s2i-do288-httpd
+Getting image source signatures
+Copying blob 0467e76cefb7 done  
+Copying blob 525ed45dbdb1 done  
+Copying blob e367bc3f151d done  
+Copying blob e6985957061c done  
+Copying blob 5bc03dec6239 done  
+Copying blob 23a96842e380 done  
+Copying config f8d5f1bc40 done  
+Writing manifest to image destination
+Copying config f8d5f1bc40 [--------------------------------------] 0.0b / 4.5KiB
+Writing manifest to image destination
+Storing signatures
+[student@workstation s2i-sample-app]$ 
+[student@workstation s2i-sample-app]$ 
+[student@workstation s2i-sample-app]$ 
+[student@workstation s2i-sample-app]$ oc login -u ${RHT_OCP4_DEV_USER} \
+> -p ${RHT_OCP4_DEV_PASSWORD} ${RHT_OCP4_MASTER_API}
+Login successful.
+
+You have one project on this server: "kctfmp-s2i"
+
+Using project "kctfmp-s2i".
+[student@workstation s2i-sample-app]$ 
+[student@workstation s2i-sample-app]$ oc new-project \
+> ${RHT_OCP4_DEV_USER}-apache-s2i
+Now using project "kctfmp-apache-s2i" on server "https://api.na46.prod.nextcle.com:6443".
+
+You can add applications to this project with the 'new-app' command. For example, try:
+
+    oc new-app rails-postgresql-example
+
+to build a new example application in Ruby. Or use kubectl to deploy a simple Kubernetes application:
+
+    kubectl create deployment hello-node --image=k8s.gcr.io/serve_hostname
+
+[student@workstation s2i-sample-app]$ 
+[student@workstation s2i-sample-app]$ oc create secret generic quayio \
+> --from-file .dockerconfigjson=${XDG_RUNTIME_DIR}/containers/auth.json \
+> --type=kubernetes.io/dockerconfigjson
+secret/quayio created
+[student@workstation s2i-sample-app]$ 
+[student@workstation s2i-sample-app]$ oc secrets link builder quayio
+[student@workstation s2i-sample-app]$ 
+[student@workstation s2i-sample-app]$ oc import-image s2i-do288-httpd \
+> --from quay.io/${RHT_OCP4_QUAY_USER}/s2i-do288-httpd --confirm
+imagestream.image.openshift.io/s2i-do288-httpd imported
+
+Name:			s2i-do288-httpd
+Namespace:		kctfmp-apache-s2i
+Created:		Less than a second ago
+Labels:			<none>
+Annotations:		openshift.io/image.dockerRepositoryCheck=2022-02-17T19:56:09Z
+Image Repository:	image-registry.openshift-image-registry.svc:5000/kctfmp-apache-s2i/s2i-do288-httpd
+Image Lookup:		local=false
+Unique Images:		1
+Tags:			1
+
+latest
+  tagged from quay.io/andrew_xu/s2i-do288-httpd
+
+  * quay.io/andrew_xu/s2i-do288-httpd@sha256:7178300f06bd37734578061a7d2f446caf0326d2f04f38320041e02e374d3908
+      Less than a second ago
+
+Image Name:	s2i-do288-httpd:latest
+Docker Image:	quay.io/andrew_xu/s2i-do288-httpd@sha256:7178300f06bd37734578061a7d2f446caf0326d2f04f38320041e02e374d3908
+Name:		sha256:7178300f06bd37734578061a7d2f446caf0326d2f04f38320041e02e374d3908
+Created:	Less than a second ago
+Annotations:	image.openshift.io/dockerLayersOrder=ascending
+Image Size:	94.61MB in 6 layers
+Layers:		88.06MB	sha256:203c612978b420640831f6a491adfa7eec07afeec38cc9a0d5e304d079da02dd
+		1.875kB	sha256:e3ff3ac72de54e9c2a7cd37e244393ef33680384b30ac7f377824e3ac9ee42cb
+		6.535MB	sha256:f5a2f2a8e8cb1c73dd6e8152e8ca3ba478b163bddc04afd1400f453d1de032c6
+		4.879kB	sha256:b9c031c34377bffac6dc5626b0ed005927e8bb3692a9c7b597e2748492bf6c8c
+		757B	sha256:e46d8e425787df8f7e4839dd9b31eb426ac5004a32d724f376b5e0a3c6652fcf
+		391B	sha256:a57c88a1edef74b9b343b37906821cd48b25809c40a25952774490c77ac6d9cf
+Image Created:	11 minutes ago
+Author:		<none>
+Arch:		amd64
+Command:	usage
+Working Dir:	<none>
+User:		1001
+Exposes Ports:	8080/tcp
+Docker Labels:	Component=httpd
+		Name=s2i-do288-httpd
+		Release=1
+		Version=1.0
+		architecture=x86_64
+		build-date=2021-10-26T13:03:15.222780
+		com.redhat.build-host=cpt-1003.osbs.prod.upshift.rdu2.redhat.com
+		com.redhat.component=ubi8-container
+		com.redhat.license_terms=https://www.redhat.com/en/about/red-hat-end-user-license-agreements#UBI
+		description=The Universal Base Image is designed and engineered to be the base layer for all of your containerized applications, middleware and utilities. This base image is freely redistributable, but Red Hat only supports Red Hat technologies through subscriptions for Red Hat products. This image is maintained by Red Hat and updated regularly.
+		distribution-scope=public
+		io.buildah.version=1.19.8
+		io.k8s.description=A basic Apache HTTP Server S2I builder image
+		io.k8s.display-name=Apache HTTP Server S2I builder image for DO288
+		io.openshift.expose-services=8080:http
+		io.openshift.s2i.scripts-url=image:///usr/libexec/s2i
+		io.openshift.tags=builder, httpd, httpd24
+		maintainer=Red Hat, Inc.
+		name=ubi8
+		release=213
+		summary=Provides the latest release of Red Hat Universal Base Image 8.
+		url=https://access.redhat.com/containers/#/registry.access.redhat.com/ubi8/images/8.4-213
+		vcs-ref=ed5adf70c28eb951940c72f4173fa32c4bca2165
+		vcs-type=git
+		vendor=Red Hat, Inc.
+		version=8.4
+Environment:	PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+		container=oci
+		DOCROOT=/var/www/html
+		APP_DIRS=/var/www/ /run/httpd/ /etc/httpd/logs/ /var/log/httpd/
+
+
+[student@workstation s2i-sample-app]$ 
+[student@workstation s2i-sample-app]$ 
+[student@workstation s2i-sample-app]$ oc get is
+NAME              IMAGE REPOSITORY                                                                                      TAGS     UPDATED
+s2i-do288-httpd   default-route-openshift-image-registry.apps.na46.prod.nextcle.com/kctfmp-apache-s2i/s2i-do288-httpd   latest   20 seconds ago
+[student@workstation s2i-sample-app]$ 
+[student@workstation s2i-sample-app]$ oc new-app --name hello-s2i \
+> s2i-do288-httpd~https://github.com/${RHT_OCP4_GITHUB_USER}/DO288-apps \
+> --context-dir=html-helloworld
+--> Found image f8d5f1b (12 minutes old) in image stream "kctfmp-apache-s2i/s2i-do288-httpd" under tag "latest" for "s2i-do288-httpd"
+
+    Apache HTTP Server S2I builder image for DO288 
+    ---------------------------------------------- 
+    A basic Apache HTTP Server S2I builder image
+
+    Tags: builder,  httpd,  httpd24
+
+    * A source build using source code from https://github.com/whynot108/DO288-apps will be created
+      * The resulting image will be pushed to image stream tag "hello-s2i:latest"
+      * Use 'oc start-build' to trigger a new build
+
+--> Creating resources ...
+    imagestream.image.openshift.io "hello-s2i" created
+    buildconfig.build.openshift.io "hello-s2i" created
+    deployment.apps "hello-s2i" created
+    service "hello-s2i" created
+--> Success
+    Build scheduled, use 'oc logs -f buildconfig/hello-s2i' to track its progress.
+    Application is not exposed. You can expose services to the outside world by executing one or more of the commands below:
+     'oc expose service/hello-s2i' 
+    Run 'oc status' to view your app.
+[student@workstation s2i-sample-app]$ 
+[student@workstation s2i-sample-app]$ 
+[student@workstation s2i-sample-app]$ oc logs -f bc/hello-s2i
+Cloning "https://github.com/whynot108/DO288-apps" ...
+	Commit:	f355431fb67e02bf81041c1ddf395770a774c657 (Fix(ch08s04): Correct Chef download link in Containerfile (#192))
+	Author:	Guy Bianco IV <gjbiancoiv@gmail.com>
+	Date:	Tue Nov 16 03:37:38 2021 -0500
+Caching blobs under "/var/cache/blobs".
+Getting image source signatures
+Copying blob sha256:e3ff3ac72de54e9c2a7cd37e244393ef33680384b30ac7f377824e3ac9ee42cb
+Copying blob sha256:203c612978b420640831f6a491adfa7eec07afeec38cc9a0d5e304d079da02dd
+Copying blob sha256:e46d8e425787df8f7e4839dd9b31eb426ac5004a32d724f376b5e0a3c6652fcf
+Copying blob sha256:a57c88a1edef74b9b343b37906821cd48b25809c40a25952774490c77ac6d9cf
+Copying blob sha256:f5a2f2a8e8cb1c73dd6e8152e8ca3ba478b163bddc04afd1400f453d1de032c6
+Copying blob sha256:b9c031c34377bffac6dc5626b0ed005927e8bb3692a9c7b597e2748492bf6c8c
+Copying config sha256:f8d5f1bc40af242a8c3802afb9bf52ad652cf8310c359b2a8fdd4ae8cdb8a14c
+Writing manifest to image destination
+Storing signatures
+Generating dockerfile with builder image quay.io/andrew_xu/s2i-do288-httpd@sha256:7178300f06bd37734578061a7d2f446caf0326d2f04f38320041e02e374d3908
+STEP 1: FROM quay.io/andrew_xu/s2i-do288-httpd@sha256:7178300f06bd37734578061a7d2f446caf0326d2f04f38320041e02e374d3908
+STEP 2: LABEL "io.openshift.build.commit.message"="Fix(ch08s04): Correct Chef download link in Containerfile (#192)"       "io.openshift.build.source-location"="https://github.com/whynot108/DO288-apps"       "io.openshift.build.source-context-dir"="html-helloworld"       "io.openshift.build.image"="quay.io/andrew_xu/s2i-do288-httpd@sha256:7178300f06bd37734578061a7d2f446caf0326d2f04f38320041e02e374d3908"       "io.openshift.build.commit.author"="Guy Bianco IV <gjbiancoiv@gmail.com>"       "io.openshift.build.commit.date"="Tue Nov 16 03:37:38 2021 -0500"       "io.openshift.build.commit.id"="f355431fb67e02bf81041c1ddf395770a774c657"       "io.openshift.build.commit.ref"="main"
+STEP 3: ENV OPENSHIFT_BUILD_NAME="hello-s2i-1"     OPENSHIFT_BUILD_NAMESPACE="kctfmp-apache-s2i"     OPENSHIFT_BUILD_SOURCE="https://github.com/whynot108/DO288-apps"     OPENSHIFT_BUILD_COMMIT="f355431fb67e02bf81041c1ddf395770a774c657"
+STEP 4: USER root
+STEP 5: COPY upload/src /tmp/src
+STEP 6: RUN chown -R 1001:0 /tmp/src
+time="2022-02-17T19:57:41Z" level=warning msg="Path \"/run/secrets/etc-pki-entitlement\" from \"/etc/containers/mounts.conf\" doesn't exist, skipping"
+time="2022-02-17T19:57:41Z" level=warning msg="Path \"/run/secrets/redhat.repo\" from \"/etc/containers/mounts.conf\" doesn't exist, skipping"
+STEP 7: USER 1001
+STEP 8: RUN /usr/libexec/s2i/assemble
+time="2022-02-17T19:57:44Z" level=warning msg="Path \"/run/secrets/etc-pki-entitlement\" from \"/etc/containers/mounts.conf\" doesn't exist, skipping"
+time="2022-02-17T19:57:44Z" level=warning msg="Path \"/run/secrets/redhat.repo\" from \"/etc/containers/mounts.conf\" doesn't exist, skipping"
+---> Copying source files to web server directory...
+STEP 9: CMD /usr/libexec/s2i/run
+STEP 10: COMMIT temp.builder.openshift.io/kctfmp-apache-s2i/hello-s2i-1:1ba2e991
+Getting image source signatures
+Copying blob sha256:5bc03dec623975972bc748cb1da06ce8b4cf854d38c854a9e5f5bcad48caf6cc
+Copying blob sha256:525ed45dbdb13def52e6eb9639a513ce72042bee7b5de070f71a35487429850d
+Copying blob sha256:e367bc3f151de6cf6f793ed8d8397b583e251730dc65b1ee5b9393df116af1e9
+Copying blob sha256:e6985957061cf3b79d8d519da3764b68bc64d7f5c16723f1e58c92a5a05ac55b
+Copying blob sha256:0467e76cefb79dd7df7d53426db5418fe02b91e42ad32ad3fb9093d983c39f37
+Copying blob sha256:23a96842e380dba4f31d96c2d0251b672c5902eddb06cbb34fb125c32ea27056
+Copying blob sha256:116d48688f6a6cd5bde056ac30c9213d356989e0591b130248a1e3e2905dc798
+Copying config sha256:1d8973ff2fa17bfbda7dc4c5f93c0744ec91c87b5914ca014deb4f9105b6b3b8
+Writing manifest to image destination
+Storing signatures
+--> 1d8973ff2fa
+1d8973ff2fa17bfbda7dc4c5f93c0744ec91c87b5914ca014deb4f9105b6b3b8
+Getting image source signatures
+
+Pushing image image-registry.openshift-image-registry.svc:5000/kctfmp-apache-s2i/hello-s2i:latest ...
+Copying blob sha256:f5a2f2a8e8cb1c73dd6e8152e8ca3ba478b163bddc04afd1400f453d1de032c6
+Copying blob sha256:a57c88a1edef74b9b343b37906821cd48b25809c40a25952774490c77ac6d9cf
+Copying blob sha256:b9c031c34377bffac6dc5626b0ed005927e8bb3692a9c7b597e2748492bf6c8c
+Copying blob sha256:203c612978b420640831f6a491adfa7eec07afeec38cc9a0d5e304d079da02dd
+Copying blob sha256:e46d8e425787df8f7e4839dd9b31eb426ac5004a32d724f376b5e0a3c6652fcf
+Copying blob sha256:e3ff3ac72de54e9c2a7cd37e244393ef33680384b30ac7f377824e3ac9ee42cb
+Copying blob sha256:116d48688f6a6cd5bde056ac30c9213d356989e0591b130248a1e3e2905dc798
+Copying config sha256:1d8973ff2fa17bfbda7dc4c5f93c0744ec91c87b5914ca014deb4f9105b6b3b8
+Writing manifest to image destination
+Storing signatures
+Successfully pushed image-registry.openshift-image-registry.svc:5000/kctfmp-apache-s2i/hello-s2i@sha256:d5196f4d04fc4e4462c3c867bb998da0d1031500e53ff9c913bd38a071369259
+Push successful
+[student@workstation s2i-sample-app]$ 
+[student@workstation s2i-sample-app]$ 
+[student@workstation s2i-sample-app]$ oc get pods
+NAME                        READY   STATUS      RESTARTS   AGE
+hello-s2i-1-build           0/1     Completed   0          46s
+hello-s2i-9f6484fb6-mlvpl   1/1     Running     0          20s
+[student@workstation s2i-sample-app]$ 
+[student@workstation s2i-sample-app]$ oc expose svc hello-s2i
+route.route.openshift.io/hello-s2i exposed
+[student@workstation s2i-sample-app]$ 
+[student@workstation s2i-sample-app]$ export APP_URL=$( \
+> oc get route/hello-s2i \
+> -o jsonpath='{.spec.host}{"\n"}')
+[student@workstation s2i-sample-app]$ 
+[student@workstation s2i-sample-app]$ echo ${APP_URL}
+hello-s2i-kctfmp-apache-s2i.apps.na46.prod.nextcle.com
+[student@workstation s2i-sample-app]$ 
+[student@workstation s2i-sample-app]$ curl ${APP_URL}
+<html>
+  <body>
+    <h1>Hello, World!</h1>
+  </body>
+</html>
+[student@workstation s2i-sample-app]$ 
+
+
+
+[student@workstation s2i-sample-app]$ oc delete project \
+> ${RHT_OCP4_DEV_USER}-apache-s2i
+project.project.openshift.io "kctfmp-apache-s2i" deleted
+[student@workstation s2i-sample-app]$ 
+[student@workstation s2i-sample-app]$ podman rm test
+6e43fd9f2602555d29c33675765e20c6ac505635cb47e2756a0db9d0fa315c20
+[student@workstation s2i-sample-app]$ 
+[student@workstation s2i-sample-app]$ podman rmi -f \
+> localhost/s2i-sample-app \
+> localhost/s2i-do288-httpd \
+> registry.access.redhat.com/ubi8/ubi:8.4
+493f179629e957911a4ed771298a98ed4d3b5c397b71837c42b4ece170ecae0c
+42f012cc862b5f2d836d105e4839d7c074e1e750b35214d6a9f8cf55c2a46d8d
+36e211b560ff3eab483ac69a1d53dddb18f9a91c680221c769559a104fe93c98
+a644298b842df6486df08dd7d5bfb6d7fed75faae21f722794b5486fd112c15c
+dfa716f5d3401131aa50ded4a7895a2a5487abad93eca6340b61a3e7a5c48add
+2c07a05ba14e39586a64d8c66f9c4d37162751b25d0e84c99fe144f06e01022f
+cc34717502c96619c5e05bd7ff7f78a6e30e4817c0e9150ab876292474285c14
+3d2dac174e09c6f8a225663b3c5135e9bf1a13ba47de32677e393578676acfb1
+c845fb99d2c5c9317abf91906e42c15f9f1b08c020a816640264277f44b74337
+6e1a00701bcf42b7f5963114db0401f6cde5c0fdbc7db8176c86a6e5e2422a30
+5c80077c8acb20f2cbc3ae9713f9b3d82d460330af59df7e315127b76157b9e4
+f3b2dd867d8d1040e4b529ffae8e6951744d7502479714a5ffbb3148f7346d33
+db0bcac29d5daae79e54fb459206bb725045a9a3addc7e2828cf29ae1216535a
+f53ee19fcb1e20c2c868255ef174b47d101ac87f7a651afed4497d4551afe51c
+eb66825b4a45fa90b983846460b6abbe899e171ddf1659899f2f3eacf957c702
+65ffb3f43d75441b3ed0eb26f73ae466a6c846bb8e150f79ff4cb2de035d0f99
+db49b2c3c329122ad3ac71dcf00d66e544ce07eb8c5a9369a6b6cec103982610
+Untagged: localhost/s2i-sample-app:latest
+Untagged: localhost/s2i-do288-httpd:latest
+Untagged: registry.access.redhat.com/ubi8/ubi:8.4
+Deleted: 80Deleted: f8d5f1bc40af242a8c3802afb9bf52ad652cf8310c359b2a8fdd4ae8cdb8a14c
+Deleted: b1e63aaae5cffb78e4af9f3a110dbad67e8013ca3de6d09f1ef496d00641e751
+[student@workstation s2i-sample-app]$ 
+[student@workstation s2i-sample-app]$ skopeo delete \
+> docker://quay.io/${RHT_OCP4_QUAY_USER}/s2i-do288-httpd:latest
+[student@workstation s2i-sample-app]$ 
+[student@workstation s2i-sample-app]$ lab apache-s2i finish
+
+Completing Guided Exercise: Creating an S2I Builder Image
+
+ · Log in on OpenShift.........................................  SUCCESS
+ · Git repo '/home/student/DO288-apps' has no pending changes..  SUCCESS
+ · Remove exercise files.......................................  SUCCESS
+ · Remove solution files.......................................  SUCCESS
+
+If you want to perform this exercise again, you need to access quay.io
+and delete your 's2i-do288-httpd' repository.
+
+
+Please use start if you wish to do the exercise again.
+
+[student@workstation s2i-sample-app]$ 
+644c30b7a6f807d86fc618e324a8589da2d0607562de7bd0b9141d63b65d62
+
+

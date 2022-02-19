@@ -1,0 +1,514 @@
+
+
+[student@workstation s2i-sample-app]$ 
+[student@workstation s2i-sample-app]$ 
+[student@workstation s2i-sample-app]$ lab multicontainer-helm start
+
+Checking prerequisites for GE: Creating a Helm Chart
+
+ Verifying the OpenShift cluster is running:
+ · Log in on OpenShift.........................................  SUCCESS
+ · Check master node na46-jffdq-master-0 is ready..............  SUCCESS
+ · Check master node na46-jffdq-master-1 is ready..............  SUCCESS
+ · Check master node na46-jffdq-master-2 is ready..............  SUCCESS
+ · Check the internal registry is up and running...............  SUCCESS
+ Checking required artifacts:
+ Checking for conflicts with existing OpenShift projects:
+ · Project 'kctfmp-multicontainer-helm' is absent..............  SUCCESS
+
+Setting up the classroom for GE: Creating a Helm Chart
+
+ · Download exercise files.....................................  SUCCESS
+ · Download solution files.....................................  SUCCESS
+
+Overall start status...........................................  SUCCESS
+
+[student@workstation s2i-sample-app]$ 
+[student@workstation s2i-sample-app]$ curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+100 11156  100 11156    0     0  59340      0 --:--:-- --:--:-- --:--:-- 59340
+Downloading https://get.helm.sh/helm-v3.8.0-linux-amd64.tar.gz
+Verifying checksum... Done.
+Preparing to install helm into /usr/local/bin
+helm installed into /usr/local/bin/helm
+[student@workstation s2i-sample-app]$ 
+[student@workstation s2i-sample-app]$ 
+[student@workstation s2i-sample-app]$ 
+[student@workstation s2i-sample-app]$ cd ~/DO288/labs/multicontainer-helm
+[student@workstation multicontainer-helm]$ 
+[student@workstation multicontainer-helm]$ helm create famouschart
+Creating famouschart
+[student@workstation multicontainer-helm]$ 
+[student@workstation multicontainer-helm]$ cd famouschart
+[student@workstation famouschart]$ 
+[student@workstation famouschart]$ tree .
+.
+├── charts
+├── Chart.yaml
+├── templates
+│   ├── deployment.yaml
+│   ├── _helpers.tpl
+│   ├── hpa.yaml
+│   ├── ingress.yaml
+│   ├── NOTES.txt
+│   ├── serviceaccount.yaml
+│   ├── service.yaml
+│   └── tests
+│       └── test-connection.yaml
+└── values.yaml
+
+3 directories, 10 files
+[student@workstation famouschart]$ 
+[student@workstation famouschart]$ 
+[student@workstation famouschart]$ vi values.yaml 
+[student@workstation famouschart]$ 
+[student@workstation famouschart]$ cat values.yaml | grep -A 5 "[Ii]mage:"
+image:
+  repository: quay.io/redhattraining/famous-quotes
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: "2.1"
+
+[student@workstation famouschart]$ 
+[student@workstation famouschart]$ vi templates/deployment.yaml 
+[student@workstation famouschart]$ 
+[student@workstation famouschart]$ cat  templates/deployment.yaml | grep -A 5 "[Pp]orts:"
+          ports:
+            - name: http
+              containerPort: 8000
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+[student@workstation famouschart]$ 
+[student@workstation famouschart]$ 
+[student@workstation famouschart]$ vi Chart.yaml 
+[student@workstation famouschart]$ 
+[student@workstation famouschart]$ 
+[student@workstation famouschart]$ helm dependency update
+Getting updates for unmanaged Helm repositories...
+...Successfully got an update from the "https://charts.bitnami.com/bitnami" chart repository
+Saving 1 charts
+Downloading mariadb from repo https://charts.bitnami.com/bitnami
+Deleting outdated charts
+[student@workstation famouschart]$ 
+[student@workstation famouschart]$ cat values.yaml
+# Default values for famouschart.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+
+image:
+  repository: quay.io/redhattraining/famous-quotes
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: "2.1"
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+podAnnotations: {}
+
+podSecurityContext: {}
+  # fsGroup: 2000
+
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+service:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+  hosts:
+    - host: chart-example.local
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+  tls: []
+  #  - secretName: chart-example-tls
+  #    hosts:
+  #      - chart-example.local
+
+resources: {}
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+  # targetMemoryUtilizationPercentage: 80
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+[student@workstation famouschart]$ 
+[student@workstation famouschart]$ cat ../mariadb.yaml >> values.yaml
+[student@workstation famouschart]$ 
+[student@workstation famouschart]$ cat values.yaml
+# Default values for famouschart.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+
+image:
+  repository: quay.io/redhattraining/famous-quotes
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: "2.1"
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+podAnnotations: {}
+
+podSecurityContext: {}
+  # fsGroup: 2000
+
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+service:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+  hosts:
+    - host: chart-example.local
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+  tls: []
+  #  - secretName: chart-example-tls
+  #    hosts:
+  #      - chart-example.local
+
+resources: {}
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+  # targetMemoryUtilizationPercentage: 80
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+mariadb:
+  auth:
+    username: quotes
+    password: quotespwd
+    database: quotesdb
+  primary:
+    podSecurityContext:
+      enabled: false
+    containerSecurityContext:
+      enabled: false
+[student@workstation famouschart]$ 
+[student@workstation famouschart]$ 
+[student@workstation famouschart]$ vi templates/deployment.yaml 
+[student@workstation famouschart]$ 
+[student@workstation famouschart]$ 
+[student@workstation famouschart]$ cat ../env.yaml >> values.yaml
+[student@workstation famouschart]$ 
+[student@workstation famouschart]$ cat values.yaml 
+# Default values for famouschart.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+
+image:
+  repository: quay.io/redhattraining/famous-quotes
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: "2.1"
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+podAnnotations: {}
+
+podSecurityContext: {}
+  # fsGroup: 2000
+
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+service:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+  hosts:
+    - host: chart-example.local
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+  tls: []
+  #  - secretName: chart-example-tls
+  #    hosts:
+  #      - chart-example.local
+
+resources: {}
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+  # targetMemoryUtilizationPercentage: 80
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+mariadb:
+  auth:
+    username: quotes
+    password: quotespwd
+    database: quotesdb
+  primary:
+    podSecurityContext:
+      enabled: false
+    containerSecurityContext:
+      enabled: false
+
+env:
+  - name: "QUOTES_HOSTNAME"
+    value: "famousapp-mariadb"
+  - name: "QUOTES_DATABASE"
+    value: "quotesdb"
+  - name: "QUOTES_USER"
+    value: "quotes"
+  - name: "QUOTES_PASSWORD"
+    value: "quotespwd"
+[student@workstation famouschart]$ 
+[student@workstation famouschart]$ 
+[student@workstation famouschart]$ source /usr/local/etc/ocp4.config
+[student@workstation famouschart]$ 
+[student@workstation famouschart]$ oc login -u ${RHT_OCP4_DEV_USER} \
+> -p ${RHT_OCP4_DEV_PASSWORD} ${RHT_OCP4_MASTER_API}
+Login successful.
+
+You have one project on this server: "kctfmp-s2i"
+
+Using project "kctfmp-s2i".
+[student@workstation famouschart]$ 
+[student@workstation famouschart]$ oc new-project \
+> ${RHT_OCP4_DEV_USER}-multicontainer-helm
+Now using project "kctfmp-multicontainer-helm" on server "https://api.na46.prod.nextcle.com:6443".
+
+You can add applications to this project with the 'new-app' command. For example, try:
+
+    oc new-app rails-postgresql-example
+
+to build a new example application in Ruby. Or use kubectl to deploy a simple Kubernetes application:
+
+    kubectl create deployment hello-node --image=k8s.gcr.io/serve_hostname
+
+[student@workstation famouschart]$ 
+[student@workstation famouschart]$ 
+[student@workstation famouschart]$ helm install famousapp .
+NAME: famousapp
+LAST DEPLOYED: Thu Feb 17 16:30:51 2022
+NAMESPACE: kctfmp-multicontainer-helm
+STATUS: deployed
+REVISION: 1
+NOTES:
+1. Get the application URL by running these commands:
+  export POD_NAME=$(kubectl get pods --namespace kctfmp-multicontainer-helm -l "app.kubernetes.io/name=famouschart,app.kubernetes.io/instance=famousapp" -o jsonpath="{.items[0].metadata.name}")
+  export CONTAINER_PORT=$(kubectl get pod --namespace kctfmp-multicontainer-helm $POD_NAME -o jsonpath="{.spec.containers[0].ports[0].containerPort}")
+  echo "Visit http://127.0.0.1:8080 to use your application"
+  kubectl --namespace kctfmp-multicontainer-helm port-forward $POD_NAME 8080:$CONTAINER_PORT
+[student@workstation famouschart]$ 
+[student@workstation famouschart]$ 
+[student@workstation famouschart]$ oc get deployments
+NAME                    READY   UP-TO-DATE   AVAILABLE   AGE
+famousapp-famouschart   0/1     1            0           15s
+[student@workstation famouschart]$ 
+[student@workstation famouschart]$ oc get pods
+NAME                                    READY   STATUS    RESTARTS   AGE
+famousapp-famouschart-c79c686bd-6rjz5   0/1     Running   2          29s
+famousapp-mariadb-0                     0/1     Running   0          29s
+[student@workstation famouschart]$ 
+[student@workstation famouschart]$ oc expose service famousapp-famouschart
+route.route.openshift.io/famousapp-famouschart exposed
+[student@workstation famouschart]$ 
+[student@workstation famouschart]$ FAMOUS_URL=$(oc get route \
+> -n ${RHT_OCP4_DEV_USER}-multicontainer-helm famousapp-famouschart \
+> -o jsonpath='{.spec.host}'/random)
+[student@workstation famouschart]$ 
+[student@workstation famouschart]$ echo $FAMOUS_URL
+famousapp-famouschart-kctfmp-multicontainer-helm.apps.na46.prod.nextcle.com/random
+[student@workstation famouschart]$ 
+[student@workstation famouschart]$ curl $FAMOUS_URL
+2: Happiness depends upon ourselves.
+- Aristotle
+[student@workstation famouschart]$ 
+[student@workstation famouschart]$ curl $FAMOUS_URL
+1: When words fail, music speaks.
+- William Shakespeare
+[student@workstation famouschart]$ 
+[student@workstation famouschart]$ podman ps
+CONTAINER ID  IMAGE   COMMAND  CREATED  STATUS  PORTS   NAMES
+[student@workstation famouschart]$ 
+[student@workstation famouschart]$ oc get pods
+NAME                                    READY   STATUS    RESTARTS   AGE
+famousapp-famouschart-c79c686bd-6rjz5   1/1     Running   3          3m22s
+famousapp-mariadb-0                     1/1     Running   0          3m22s
+[student@workstation famouschart]$ 
+[student@workstation famouschart]$ oc get deploy
+NAME                    READY   UP-TO-DATE   AVAILABLE   AGE
+famousapp-famouschart   1/1     1            1           6m20s
+[student@workstation famouschart]$ 
+[student@workstation famouschart]$ 
+[student@workstation famouschart]$ 
+[student@workstation famouschart]$ oc describe deploy famousapp-famouschart 
+Name:                   famousapp-famouschart
+Namespace:              kctfmp-multicontainer-helm
+CreationTimestamp:      Thu, 17 Feb 2022 16:30:51 -0500
+Labels:                 app.kubernetes.io/instance=famousapp
+                        app.kubernetes.io/managed-by=Helm
+                        app.kubernetes.io/name=famouschart
+                        app.kubernetes.io/version=1.16.0
+                        helm.sh/chart=famouschart-0.1.0
+Annotations:            deployment.kubernetes.io/revision: 1
+                        meta.helm.sh/release-name: famousapp
+                        meta.helm.sh/release-namespace: kctfmp-multicontainer-helm
+Selector:               app.kubernetes.io/instance=famousapp,app.kubernetes.io/name=famouschart
+Replicas:               1 desired | 1 updated | 1 total | 1 available | 0 unavailable
+StrategyType:           RollingUpdate
+MinReadySeconds:        0
+RollingUpdateStrategy:  25% max unavailable, 25% max surge
+Pod Template:
+  Labels:           app.kubernetes.io/instance=famousapp
+                    app.kubernetes.io/name=famouschart
+  Service Account:  famousapp-famouschart
+  Containers:
+   famouschart:
+    Image:      quay.io/redhattraining/famous-quotes:2.1
+    Port:       8000/TCP
+    Host Port:  0/TCP
+    Liveness:   http-get http://:http/ delay=0s timeout=1s period=10s #success=1 #failure=3
+    Readiness:  http-get http://:http/ delay=0s timeout=1s period=10s #success=1 #failure=3
+    Environment:
+      QUOTES_HOSTNAME:  famousapp-mariadb
+      QUOTES_DATABASE:  quotesdb
+      QUOTES_USER:      quotes
+      QUOTES_PASSWORD:  quotespwd
+    Mounts:             <none>
+  Volumes:              <none>
+Conditions:
+  Type           Status  Reason
+  ----           ------  ------
+  Available      True    MinimumReplicasAvailable
+  Progressing    True    NewReplicaSetAvailable
+OldReplicaSets:  <none>
+NewReplicaSet:   famousapp-famouschart-c79c686bd (1/1 replicas created)
+Events:
+  Type    Reason             Age    From                   Message
+  ----    ------             ----   ----                   -------
+  Normal  ScalingReplicaSet  7m48s  deployment-controller  Scaled up replica set famousapp-famouschart-c79c686bd to 1
+[student@workstation famouschart]$ 
+

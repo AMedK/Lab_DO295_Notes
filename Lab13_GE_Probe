@@ -1,0 +1,637 @@
+
+[student@workstation ~]$ 
+[student@workstation ~]$ 
+[student@workstation ~]$ lab probes start
+
+Checking prerequisites for Guided Exercise: Activating Probes
+
+ Checking for conflicts with existing OpenShift projects:
+ · Project 'kctfmp-probes' is absent...........................  SUCCESS
+ · Project 'probes' exists in student's GitHub fork............  SUCCESS
+ Verifying the OpenShift cluster is running:
+ · Log in on OpenShift.........................................  SUCCESS
+ · Check master node na46-jffdq-master-0 is ready..............  SUCCESS
+ · Check master node na46-jffdq-master-1 is ready..............  SUCCESS
+ · Check master node na46-jffdq-master-2 is ready..............  SUCCESS
+ · Check the internal registry is up and running...............  SUCCESS
+
+Setting up the classroom for Guided Exercise: Activating Probes
+
+ · Download exercise files.....................................  SUCCESS
+
+Overall start status...........................................  SUCCESS
+
+[student@workstation ~]$ 
+[student@workstation ~]$ 
+[student@workstation ~]$ source /usr/local/etc/ocp4.config
+[student@workstation ~]$ 
+[student@workstation ~]$ oc login -u ${RHT_OCP4_DEV_USER} \
+> -p ${RHT_OCP4_DEV_PASSWORD} ${RHT_OCP4_MASTER_API}
+Login successful.
+
+You have one project on this server: "kctfmp-s2i"
+
+Using project "kctfmp-s2i".
+[student@workstation ~]$ 
+[student@workstation ~]$ 
+[student@workstation ~]$ oc new-project ${RHT_OCP4_DEV_USER}-probes
+Now using project "kctfmp-probes" on server "https://api.na46.prod.nextcle.com:6443".
+
+You can add applications to this project with the 'new-app' command. For example, try:
+
+    oc new-app rails-postgresql-example
+
+to build a new example application in Ruby. Or use kubectl to deploy a simple Kubernetes application:
+
+    kubectl create deployment hello-node --image=k8s.gcr.io/serve_hostname
+
+[student@workstation ~]$ 
+[student@workstation ~]$ oc new-app \
+> --name probes --context-dir probes --build-env \
+> npm_config_registry=http://${RHT_OCP4_NEXUS_SERVER}/repository/nodejs \
+> nodejs:12~https://github.com/${RHT_OCP4_GITHUB_USER}/DO288-apps
+--> Found image 1ad9bd1 (2 months old) in image stream "openshift/nodejs" under tag "12" for "nodejs:12"
+
+    Node.js 12 
+    ---------- 
+    Node.js 12 available as container is a base platform for building and running various Node.js 12 applications and frameworks. Node.js is a platform built on Chrome's JavaScript runtime for easily building fast, scalable network applications. Node.js uses an event-driven, non-blocking I/O model that makes it lightweight and efficient, perfect for data-intensive real-time applications that run across distributed devices.
+
+    Tags: builder, nodejs, nodejs12
+
+    * A source build using source code from https://github.com/whynot108/DO288-apps will be created
+      * The resulting image will be pushed to image stream tag "probes:latest"
+      * Use 'oc start-build' to trigger a new build
+
+--> Creating resources ...
+    imagestream.image.openshift.io "probes" created
+    buildconfig.build.openshift.io "probes" created
+    deployment.apps "probes" created
+    service "probes" created
+--> Success
+    Build scheduled, use 'oc logs -f buildconfig/probes' to track its progress.
+    Application is not exposed. You can expose services to the outside world by executing one or more of the commands below:
+     'oc expose service/probes' 
+    Run 'oc status' to view your app.
+[student@workstation ~]$ 
+[student@workstation ~]$ 
+[student@workstation ~]$ oc logs -f bc/probes
+Cloning "https://github.com/whynot108/DO288-apps" ...
+	Commit:	f355431fb67e02bf81041c1ddf395770a774c657 (Fix(ch08s04): Correct Chef download link in Containerfile (#192))
+	Author:	Guy Bianco IV <gjbiancoiv@gmail.com>
+	Date:	Tue Nov 16 03:37:38 2021 -0500
+Caching blobs under "/var/cache/blobs".
+Getting image source signatures
+Copying blob sha256:ac08ca107ad9ed699cbd28339749dd6463a84c73aa1d468a4241385fc4ec3876
+Copying blob sha256:8e111a1c7b205e8d46bf83e9725922a10ac4b59f7ce26679318682def91efa55
+Copying blob sha256:b46ca46c303b49d886a7585735ebd1dc8651e83d0fab5823300cf3a9fd2febc1
+Copying blob sha256:faf2fea3663b6b26a48698856e64b859d6d8cb46bf7d4700e58b7aa941f6fd5f
+Copying blob sha256:aa05f1490571b1a76608228bc66534dffe56c139de13f4ba89d9dfba0de8eb3f
+Copying config sha256:1ad9bd1d0c04a3b3b229aec8e2cdc45d20ea121155531d44a3c5c49f70e35619
+Writing manifest to image destination
+Storing signatures
+Generating dockerfile with builder image image-registry.openshift-image-registry.svc:5000/openshift/nodejs@sha256:6e20b81d4261bd1050048d157a50b4af531ff19aaccdf1e1abfa24ebfa051fa0
+STEP 1: FROM image-registry.openshift-image-registry.svc:5000/openshift/nodejs@sha256:6e20b81d4261bd1050048d157a50b4af531ff19aaccdf1e1abfa24ebfa051fa0
+STEP 2: LABEL "io.openshift.build.source-location"="https://github.com/whynot108/DO288-apps"       "io.openshift.build.source-context-dir"="probes"       "io.openshift.build.image"="image-registry.openshift-image-registry.svc:5000/openshift/nodejs@sha256:6e20b81d4261bd1050048d157a50b4af531ff19aaccdf1e1abfa24ebfa051fa0"       "io.openshift.build.commit.author"="Guy Bianco IV <gjbiancoiv@gmail.com>"       "io.openshift.build.commit.date"="Tue Nov 16 03:37:38 2021 -0500"       "io.openshift.build.commit.id"="f355431fb67e02bf81041c1ddf395770a774c657"       "io.openshift.build.commit.ref"="main"       "io.openshift.build.commit.message"="Fix(ch08s04): Correct Chef download link in Containerfile (#192)"
+STEP 3: ENV OPENSHIFT_BUILD_NAME="probes-1"     OPENSHIFT_BUILD_NAMESPACE="kctfmp-probes"     OPENSHIFT_BUILD_SOURCE="https://github.com/whynot108/DO288-apps"     OPENSHIFT_BUILD_COMMIT="f355431fb67e02bf81041c1ddf395770a774c657"     npm_config_registry="http://nexus-common.apps.na46.prod.nextcle.com/repository/nodejs"
+STEP 4: USER root
+STEP 5: COPY upload/src /tmp/src
+STEP 6: RUN chown -R 1001:0 /tmp/src
+time="2022-02-18T15:21:39Z" level=warning msg="Path \"/run/secrets/etc-pki-entitlement\" from \"/etc/containers/mounts.conf\" doesn't exist, skipping"
+time="2022-02-18T15:21:39Z" level=warning msg="Path \"/run/secrets/redhat.repo\" from \"/etc/containers/mounts.conf\" doesn't exist, skipping"
+STEP 7: USER 1001
+STEP 8: RUN /usr/libexec/s2i/assemble
+time="2022-02-18T15:21:40Z" level=warning msg="Path \"/run/secrets/etc-pki-entitlement\" from \"/etc/containers/mounts.conf\" doesn't exist, skipping"
+time="2022-02-18T15:21:40Z" level=warning msg="Path \"/run/secrets/redhat.repo\" from \"/etc/containers/mounts.conf\" doesn't exist, skipping"
+---> Installing application source ...
+---> Installing all dependencies
+npm notice created a lockfile as package-lock.json. You should commit this file.
+npm WARN probes@1.0.0 No repository field.
+npm WARN probes@1.0.0 license should be a valid SPDX license expression
+
+added 50 packages from 37 contributors in 2.147s
+
+2 packages are looking for funding
+  run `npm fund` for details
+
+---> Building in production mode
+---> Pruning the development dependencies
+npm WARN probes@1.0.0 No repository field.
+npm WARN probes@1.0.0 license should be a valid SPDX license expression
+
+up to date in 0.398s
+
+2 packages are looking for funding
+  run `npm fund` for details
+
+/opt/app-root/src/.npm is not a mountpoint
+---> Cleaning the npm cache /opt/app-root/src/.npm
+/tmp is not a mountpoint
+---> Cleaning the /tmp/npm-*
+STEP 9: CMD /usr/libexec/s2i/run
+STEP 10: COMMIT temp.builder.openshift.io/kctfmp-probes/probes-1:a28ebfb5
+Getting image source signatures
+Copying blob sha256:cc423b2000aec40199a4f4e1012f2e9b573d4ce6bc1ca416a598f8e1d45f3d13
+Copying blob sha256:41d099875e8768dcadb9f7e388d68c50eb25f6160c8a3858b966d12d89e4d288
+Copying blob sha256:3cd3b63408eccc3f9a1ffb740cf311d927927f94247e952af1c9b67c1ad2db4f
+Copying blob sha256:3dca2e66497972abbd6a7796a701296ada6bb53013b52d4432bc0d3f1cf0e7bd
+Copying blob sha256:cbd14b4998e05d5a05f10fa887ca9e0bfb2f5731caf1726b31d57f8d6b2a8341
+Copying blob sha256:d11affcd527a8ec479a51441f5fd3277580951e9facb536eaa4be8470ff84b1f
+Copying config sha256:7864828b145c2014b0c73d10f0772502ae229586be0904da66c41578e0de1335
+Writing manifest to image destination
+Storing signatures
+--> 7864828b145
+7864828b145c2014b0c73d10f0772502ae229586be0904da66c41578e0de1335
+
+Pushing image image-registry.openshift-image-registry.svc:5000/kctfmp-probes/probes:latest ...
+Getting image source signatures
+Copying blob sha256:d11affcd527a8ec479a51441f5fd3277580951e9facb536eaa4be8470ff84b1f
+Copying blob sha256:8e111a1c7b205e8d46bf83e9725922a10ac4b59f7ce26679318682def91efa55
+Copying blob sha256:ac08ca107ad9ed699cbd28339749dd6463a84c73aa1d468a4241385fc4ec3876
+Copying blob sha256:b46ca46c303b49d886a7585735ebd1dc8651e83d0fab5823300cf3a9fd2febc1
+Copying blob sha256:faf2fea3663b6b26a48698856e64b859d6d8cb46bf7d4700e58b7aa941f6fd5f
+Copying blob sha256:aa05f1490571b1a76608228bc66534dffe56c139de13f4ba89d9dfba0de8eb3f
+Copying config sha256:7864828b145c2014b0c73d10f0772502ae229586be0904da66c41578e0de1335
+Writing manifest to image destination
+Storing signatures
+Successfully pushed image-registry.openshift-image-registry.svc:5000/kctfmp-probes/probes@sha256:73b98a0795f4bf719c299bc0307a3628c8469ab3dfa5b24e29fb545ad6119885
+Push successful
+[student@workstation ~]$ 
+[student@workstation ~]$ 
+[student@workstation ~]$ oc get pods
+NAME                     READY   STATUS      RESTARTS   AGE
+probes-1-build           0/1     Completed   0          55s
+probes-f785f85d7-wz7w7   1/1     Running     0          17s
+[student@workstation ~]$ 
+[student@workstation ~]$ oc expose svc probes
+route.route.openshift.io/probes exposed
+[student@workstation ~]$ 
+[student@workstation ~]$ curl \
+> -i probes-${RHT_OCP4_DEV_USER}-probes.${RHT_OCP4_WILDCARD_DOMAIN}/ready
+HTTP/1.1 200 OK
+X-Powered-By: Express
+Content-Type: text/html; charset=utf-8
+Content-Length: 30
+ETag: W/"1e-pgLIGYYknQvH9BUxCvwq05qsyuU"
+Date: Fri, 18 Feb 2022 15:22:45 GMT
+Keep-Alive: timeout=5
+Set-Cookie: b4f038ea3ec4f5ae27c2ecd2f345b262=67f621918947ee9085da4ad2682d4cba; path=/; HttpOnly
+Cache-control: private
+
+Ready for service requests...
+[student@workstation ~]$ 
+[student@workstation ~]$ curl \
+> -i probes-${RHT_OCP4_DEV_USER}-probes.${RHT_OCP4_WILDCARD_DOMAIN}/healthz
+HTTP/1.1 200 OK
+X-Powered-By: Express
+Content-Type: text/html; charset=utf-8
+Content-Length: 3
+ETag: W/"3-CftlTBfMBbEe9TvTWqcB9tVQ6OE"
+Date: Fri, 18 Feb 2022 15:23:26 GMT
+Keep-Alive: timeout=5
+Set-Cookie: b4f038ea3ec4f5ae27c2ecd2f345b262=67f621918947ee9085da4ad2682d4cba; path=/; HttpOnly
+Cache-control: private
+
+OK
+[student@workstation ~]$ 
+[student@workstation ~]$ curl \
+> probes-${RHT_OCP4_DEV_USER}-probes.${RHT_OCP4_WILDCARD_DOMAIN}
+Hello! This is the index page for the app.
+[student@workstation ~]$ 
+[student@workstation ~]$ 
+[student@workstation ~]$ 
+[student@workstation ~]$ oc set probe deployment probes --liveness \
+> --get-url=http://:8080/healthz \
+> --initial-delay-seconds=2 --timeout-seconds=2
+deployment.apps/probes probes updated
+[student@workstation ~]$ 
+[student@workstation ~]$ oc set probe deployment probes --readiness \
+> --get-url=http://:8080/ready \
+> --initial-delay-seconds=2 --timeout-seconds=2
+deployment.apps/probes probes updated
+[student@workstation ~]$ 
+[student@workstation ~]$ oc describe deployment probes | \
+> grep -iA 1 liveness
+    Liveness:     http-get http://:8080/healthz delay=2s timeout=2s period=10s #success=1 #failure=3
+    Readiness:    http-get http://:8080/ready delay=2s timeout=2s period=10s #success=1 #failure=3
+[student@workstation ~]$ 
+[student@workstation ~]$ oc get pods
+NAME                      READY   STATUS      RESTARTS   AGE
+probes-1-build            0/1     Completed   0          8m40s
+probes-7c7cf589f6-ghhbw   1/1     Running     0          4m43s
+[student@workstation ~]$ 
+[student@workstation ~]$ POD=$(oc get pods -o name | grep -v build)
+[student@workstation ~]$ 
+[student@workstation ~]$ oc logs -f $POD
+Environment: 
+	DEV_MODE=false
+	NODE_ENV=production
+	DEBUG_PORT=5858
+Launching via npm...
+npm info it worked if it ends with ok
+npm info using npm@6.14.14
+npm info using node@v12.22.5
+npm info lifecycle probes@1.0.0~prestart: probes@1.0.0
+npm info lifecycle probes@1.0.0~start: probes@1.0.0
+
+> probes@1.0.0 start /opt/app-root/src
+> node app.js
+
+nodejs server running on http://0.0.0.0:8080
+ping /healthz => pong [healthy]
+ping /ready => pong [notready]
+ping /healthz => pong [healthy]
+ping /ready => pong [notready]
+ping /healthz => pong [healthy]
+ping /ready => pong [notready]
+ping /healthz => pong [healthy]
+ping /ready => pong [ready]
+ping /healthz => pong [healthy]
+ping /ready => pong [ready]
+ping /healthz => pong [healthy]
+ping /ready => pong [ready]
+ping /healthz => pong [healthy]
+ping /ready => pong [ready]
+ping /healthz => pong [healthy]
+ping /ready => pong [ready]
+ping /healthz => pong [healthy]
+ping /ready => pong [ready]
+ping /healthz => pong [healthy]
+ping /ready => pong [ready]
+ping /healthz => pong [healthy]
+ping /ready => pong [ready]
+ping /healthz => pong [healthy]
+ping /ready => pong [ready]
+ping /healthz => pong [healthy]
+ping /ready => pong [ready]
+ping /healthz => pong [healthy]
+ping /ready => pong [ready]
+ping /healthz => pong [healthy]
+ping /ready => pong [ready]
+ping /healthz => pong [healthy]
+ping /ready => pong [ready]
+ping /healthz => pong [healthy]
+ping /ready => pong [ready]
+ping /healthz => pong [healthy]
+ping /ready => pong [ready]
+ping /healthz => pong [healthy]
+ping /ready => pong [ready]
+ping /healthz => pong [healthy]
+ping /ready => pong [ready]
+ping /healthz => pong [healthy]
+ping /ready => pong [ready]
+ping /healthz => pong [healthy]
+ping /ready => pong [ready]
+ping /healthz => pong [healthy]
+ping /ready => pong [ready]
+ping /healthz => pong [healthy]
+ping /ready => pong [ready]
+ping /healthz => pong [healthy]
+ping /ready => pong [ready]
+ping /healthz => pong [healthy]
+ping /ready => pong [ready]
+ping /healthz => pong [healthy]
+ping /ready => pong [ready]
+ping /healthz => pong [healthy]
+ping /ready => pong [ready]
+ping /healthz => pong [healthy]
+ping /ready => pong [ready]
+ping /healthz => pong [healthy]
+ping /ready => pong [ready]
+ping /healthz => pong [healthy]
+ping /ready => pong [ready]
+ping /healthz => pong [healthy]
+ping /ready => pong [ready]
+^C
+[student@workstation ~]$ 
+[student@workstation ~]$ 
+[student@workstation ~]$ ~/DO288/labs/probes/kill.sh
+Switched app state to unhealthy...
+Switched app state to not ready...
+[student@workstation ~]$ 
+[student@workstation ~]$ oc logs -f $POD
+Environment: 
+	DEV_MODE=false
+	NODE_ENV=production
+	DEBUG_PORT=5858
+Launching via npm...
+npm info it worked if it ends with ok
+npm info using npm@6.14.14
+npm info using node@v12.22.5
+npm info lifecycle probes@1.0.0~prestart: probes@1.0.0
+npm info lifecycle probes@1.0.0~start: probes@1.0.0
+
+> probes@1.0.0 start /opt/app-root/src
+> node app.js
+
+nodejs server running on http://0.0.0.0:8080
+ping /healthz => pong [healthy]
+ping /ready => pong [notready]
+ping /healthz => pong [healthy]
+ping /ready => pong [notready]
+ping /healthz => pong [healthy]
+ping /ready => pong [notready]
+ping /healthz => pong [healthy]
+ping /ready => pong [ready]
+ping /healthz => pong [healthy]
+ping /ready => pong [ready]
+ping /healthz => pong [healthy]
+ping /ready => pong [ready]
+ping /healthz => pong [healthy]
+ping /ready => pong [ready]
+ping /healthz => pong [healthy]
+ping /ready => pong [ready]
+ping /healthz => pong [healthy]
+ping /ready => pong [ready]
+ping /healthz => pong [healthy]
+ping /ready => pong [ready]
+ping /healthz => pong [healthy]
+ping /ready => pong [ready]
+ping /healthz => pong [healthy]
+ping /ready => pong [ready]
+ping /healthz => pong [healthy]
+ping /ready => pong [ready]
+ping /healthz => pong [healthy]
+ping /ready => pong [ready]
+ping /healthz => pong [healthy]
+ping /ready => pong [ready]
+ping /healthz => pong [healthy]
+ping /ready => pong [ready]
+ping /healthz => pong [healthy]
+ping /ready => pong [ready]
+ping /healthz => pong [healthy]
+ping /ready => pong [ready]
+ping /healthz => pong [healthy]
+ping /ready => pong [ready]
+ping /healthz => pong [healthy]
+ping /ready => pong [ready]
+ping /healthz => pong [healthy]
+ping /ready => pong [ready]
+ping /healthz => pong [healthy]
+ping /ready => pong [ready]
+ping /healthz => pong [healthy]
+ping /ready => pong [ready]
+ping /healthz => pong [healthy]
+ping /ready => pong [ready]
+ping /healthz => pong [healthy]
+ping /ready => pong [ready]
+ping /healthz => pong [healthy]
+ping /ready => pong [ready]
+ping /healthz => pong [healthy]
+ping /ready => pong [ready]
+ping /healthz => pong [healthy]
+ping /ready => pong [ready]
+ping /healthz => pong [healthy]
+ping /ready => pong [ready]
+ping /healthz => pong [healthy]
+ping /ready => pong [ready]
+ping /healthz => pong [healthy]
+ping /ready => pong [ready]
+ping /healthz => pong [healthy]
+ping /ready => pong [ready]
+ping /healthz => pong [healthy]
+ping /ready => pong [ready]
+ping /healthz => pong [healthy]
+ping /ready => pong [ready]
+ping /healthz => pong [healthy]
+ping /ready => pong [ready]
+ping /healthz => pong [healthy]
+ping /ready => pong [ready]
+ping /healthz => pong [healthy]
+ping /ready => pong [ready]
+ping /healthz => pong [healthy]
+ping /ready => pong [ready]
+ping /healthz => pong [healthy]
+ping /ready => pong [ready]
+ping /healthz => pong [healthy]
+ping /ready => pong [ready]
+ping /healthz => pong [healthy]
+ping /ready => pong [ready]
+Received kill request for health probe.
+Received kill request for readiness probe.
+ping /healthz => pong [unhealthy]
+ping /ready => pong [notready]
+ping /healthz => pong [unhealthy]
+ping /ready => pong [notready]
+ping /healthz => pong [unhealthy]
+npm info lifecycle probes@1.0.0~poststart: probes@1.0.0
+npm timing npm Completed in 437862ms
+npm info ok 
+[student@workstation ~]$ 
+[student@workstation ~]$ 
+[student@workstation ~]$ oc get pods
+NAME                      READY   STATUS      RESTARTS   AGE
+probes-1-build            0/1     Completed   0          11m
+probes-7c7cf589f6-ghhbw   0/1     Running     1          7m45s
+[student@workstation ~]$ 
+[student@workstation ~]$ oc get pods
+NAME                      READY   STATUS      RESTARTS   AGE
+probes-1-build            0/1     Completed   0          11m
+probes-7c7cf589f6-ghhbw   0/1     Running     1          7m53s
+[student@workstation ~]$ 
+[student@workstation ~]$ 
+[student@workstation ~]$ oc get pods
+NAME                      READY   STATUS      RESTARTS   AGE
+probes-1-build            0/1     Completed   0          11m
+probes-7c7cf589f6-ghhbw   1/1     Running     1          8m
+[student@workstation ~]$ 
+[student@workstation ~]$ POD=$(oc get pods -o name | grep -v build)
+[student@workstation ~]$ 
+[student@workstation ~]$ oc logs -f $POD
+Environment: 
+	DEV_MODE=false
+	NODE_ENV=production
+	DEBUG_PORT=5858
+Launching via npm...
+npm info it worked if it ends with ok
+npm info using npm@6.14.14
+npm info using node@v12.22.5
+npm info lifecycle probes@1.0.0~prestart: probes@1.0.0
+npm info lifecycle probes@1.0.0~start: probes@1.0.0
+
+> probes@1.0.0 start /opt/app-root/src
+> node app.js
+
+nodejs server running on http://0.0.0.0:8080
+ping /ready => pong [notready]
+ping /healthz => pong [healthy]
+ping /ready => pong [notready]
+ping /healthz => pong [healthy]
+ping /ready => pong [notready]
+ping /healthz => pong [healthy]
+ping /ready => pong [ready]
+ping /healthz => pong [healthy]
+ping /ready => pong [ready]
+ping /healthz => pong [healthy]
+ping /ready => pong [ready]
+ping /healthz => pong [healthy]
+ping /ready => pong [ready]
+ping /healthz => pong [healthy]
+^C
+[student@workstation ~]$ 
+[student@workstation ~]$ 
+[student@workstation ~]$ ~/DO288/labs/probes/not-ready.sh
+Switched app state to not ready...
+[student@workstation ~]$ 
+[student@workstation ~]$ oc logs -f $POD
+Environment: 
+	DEV_MODE=false
+	NODE_ENV=production
+	DEBUG_PORT=5858
+Launching via npm...
+npm info it worked if it ends with ok
+npm info using npm@6.14.14
+npm info using node@v12.22.5
+npm info lifecycle probes@1.0.0~prestart: probes@1.0.0
+npm info lifecycle probes@1.0.0~start: probes@1.0.0
+
+> probes@1.0.0 start /opt/app-root/src
+> node app.js
+
+nodejs server running on http://0.0.0.0:8080
+ping /ready => pong [notready]
+ping /healthz => pong [healthy]
+ping /ready => pong [notready]
+ping /healthz => pong [healthy]
+ping /ready => pong [notready]
+ping /healthz => pong [healthy]
+ping /ready => pong [ready]
+ping /healthz => pong [healthy]
+ping /ready => pong [ready]
+ping /healthz => pong [healthy]
+ping /ready => pong [ready]
+ping /healthz => pong [healthy]
+ping /ready => pong [ready]
+ping /healthz => pong [healthy]
+ping /ready => pong [ready]
+ping /healthz => pong [healthy]
+ping /ready => pong [ready]
+ping /healthz => pong [healthy]
+ping /ready => pong [ready]
+Received kill request for readiness probe.
+ping /healthz => pong [healthy]
+ping /ready => pong [notready]
+ping /healthz => pong [healthy]
+ping /ready => pong [notready]
+ping /healthz => pong [healthy]
+ping /ready => pong [notready]
+^C
+[student@workstation ~]$ 
+[student@workstation ~]$ oc get pods
+NAME                      READY   STATUS      RESTARTS   AGE
+probes-1-build            0/1     Completed   0          13m
+probes-7c7cf589f6-ghhbw   0/1     Running     1          9m35s
+[student@workstation ~]$ 
+[student@workstation ~]$ source /usr/local/etc/ocp4.config
+[student@workstation ~]$ 
+[student@workstation ~]$ curl -is \
+> probes-${RHT_OCP4_DEV_USER}-probes.${RHT_OCP4_WILDCARD_DOMAIN} \
+> | grep 'HTTP/1.0'
+HTTP/1.0 503 Service Unavailable
+[student@workstation ~]$ 
+[student@workstation ~]$ POD=$(oc get pods -o name | grep -v build)
+[student@workstation ~]$ 
+[student@workstation ~]$ oc describe $POD
+Name:         probes-7c7cf589f6-ghhbw
+Namespace:    kctfmp-probes
+Priority:     0
+Node:         na46-jffdq-worker-0-k5mcg/10.0.1.95
+Start Time:   Fri, 18 Feb 2022 10:25:06 -0500
+Labels:       deployment=probes
+              pod-template-hash=7c7cf589f6
+Annotations:  k8s.v1.cni.cncf.io/network-status:
+                [{
+                    "name": "",
+                    "interface": "eth0",
+                    "ips": [
+                        "10.129.5.233"
+                    ],
+                    "default": true,
+                    "dns": {}
+                }]
+              k8s.v1.cni.cncf.io/networks-status:
+                [{
+                    "name": "",
+                    "interface": "eth0",
+                    "ips": [
+                        "10.129.5.233"
+                    ],
+                    "default": true,
+                    "dns": {}
+                }]
+              kubernetes.io/limit-ranger: LimitRanger plugin set: cpu, memory request for container probes; cpu, memory limit for container probes
+              openshift.io/generated-by: OpenShiftNewApp
+              openshift.io/scc: restricted
+Status:       Running
+IP:           10.129.5.233
+IPs:
+  IP:           10.129.5.233
+Controlled By:  ReplicaSet/probes-7c7cf589f6
+Containers:
+  probes:
+    Container ID:   cri-o://21c39c4556806b5e6281db42b754dd961db48cef98d1b40c0fcf06be362487b9
+    Image:          image-registry.openshift-image-registry.svc:5000/kctfmp-probes/probes@sha256:73b98a0795f4bf719c299bc0307a3628c8469ab3dfa5b24e29fb545ad6119885
+    Image ID:       image-registry.openshift-image-registry.svc:5000/kctfmp-probes/probes@sha256:73b98a0795f4bf719c299bc0307a3628c8469ab3dfa5b24e29fb545ad6119885
+    Port:           8080/TCP
+    Host Port:      0/TCP
+    State:          Running
+      Started:      Fri, 18 Feb 2022 10:32:28 -0500
+    Last State:     Terminated
+      Reason:       Completed
+      Exit Code:    0
+      Started:      Fri, 18 Feb 2022 10:25:10 -0500
+      Finished:     Fri, 18 Feb 2022 10:32:28 -0500
+    Ready:          False
+    Restart Count:  1
+    Limits:
+      cpu:     1500m
+      memory:  2Gi
+    Requests:
+      cpu:        5m
+      memory:     50Mi
+    Liveness:     http-get http://:8080/healthz delay=2s timeout=2s period=10s #success=1 #failure=3
+    Readiness:    http-get http://:8080/ready delay=2s timeout=2s period=10s #success=1 #failure=3
+    Environment:  <none>
+    Mounts:
+      /var/run/secrets/kubernetes.io/serviceaccount from default-token-xgcgr (ro)
+Conditions:
+  Type              Status
+  Initialized       True 
+  Ready             False 
+  ContainersReady   False 
+  PodScheduled      True 
+Volumes:
+  default-token-xgcgr:
+    Type:        Secret (a volume populated by a Secret)
+    SecretName:  default-token-xgcgr
+    Optional:    false
+QoS Class:       Burstable
+Node-Selectors:  <none>
+Tolerations:     node.kubernetes.io/memory-pressure:NoSchedule op=Exists
+                 node.kubernetes.io/not-ready:NoExecute op=Exists for 300s
+                 node.kubernetes.io/unreachable:NoExecute op=Exists for 300s
+Events:
+  Type     Reason          Age                    From               Message
+  ----     ------          ----                   ----               -------
+  Normal   Scheduled       10m                    default-scheduler  Successfully assigned kctfmp-probes/probes-7c7cf589f6-ghhbw to na46-jffdq-worker-0-k5mcg
+  Normal   AddedInterface  10m                    multus             Add eth0 [10.129.5.233/23]
+  Normal   Pulled          3m23s (x2 over 10m)    kubelet            Container image "image-registry.openshift-image-registry.svc:5000/kctfmp-probes/probes@sha256:73b98a0795f4bf719c299bc0307a3628c8469ab3dfa5b24e29fb545ad6119885" already present on machine
+  Normal   Created         3m23s (x2 over 10m)    kubelet            Created container probes
+  Normal   Started         3m23s (x2 over 10m)    kubelet            Started container probes
+  Warning  Unhealthy       3m23s (x3 over 3m43s)  kubelet            Liveness probe failed: HTTP probe failed with statuscode: 503
+  Normal   Killing         3m23s                  kubelet            Container probes failed liveness probe, will be restarted
+  Warning  Unhealthy       21s (x17 over 10m)     kubelet            Readiness probe failed: HTTP probe failed with statuscode: 503
+[student@workstation ~]$ 
+[student@workstation ~]$ 
+[student@workstation ~]$ oc delete project ${RHT_OCP4_DEV_USER}-probes
+project.project.openshift.io "kctfmp-probes" deleted
+[student@workstation ~]$ 
+[student@workstation ~]$ lab probes finish
+
+Completing Guided Exercise: Activating Probes
+
+ · Remove exercise files.......................................  SUCCESS
+
+Please use start if you wish to do the exercise again.
+
+[student@workstation ~]$ 
+

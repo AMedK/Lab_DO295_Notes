@@ -1,0 +1,236 @@
+[student@workstation ~]$ 
+[student@workstation ~]$ lab strategy start
+
+Checking prerequisites for Guided Exercise: Implementing a Deployment Strategy
+
+ Verifying the OpenShift cluster is running:
+ · Log in on OpenShift.........................................  SUCCESS
+ · Check master node na46-jffdq-master-0 is ready..............  SUCCESS
+ · Check master node na46-jffdq-master-1 is ready..............  SUCCESS
+ · Check master node na46-jffdq-master-2 is ready..............  SUCCESS
+ · Check the internal registry is up and running...............  SUCCESS
+ Checking for conflicts with existing OpenShift projects:
+ · Project 'kctfmp-strategy' is absent.........................  SUCCESS
+ Checking required artifacts:
+ · SQL initialization script users.sql is available............  SUCCESS
+ · Import script import.sh is available........................  SUCCESS
+
+Setting up the classroom for Guided Exercise: Implementing a Deployment Strategy
+
+ Creating the starter project:
+ · Download exercise files.....................................  SUCCESS
+
+Overall start status...........................................  SUCCESS
+
+[student@workstation ~]$ 
+[student@workstation ~]$ 
+[student@workstation ~]$ source /usr/local/etc/ocp4.config
+[student@workstation ~]$ 
+[student@workstation ~]$ oc login -u ${RHT_OCP4_DEV_USER} \
+> -p ${RHT_OCP4_DEV_PASSWORD} ${RHT_OCP4_MASTER_API}
+Login successful.
+
+You have one project on this server: "kctfmp-s2i"
+
+Using project "kctfmp-s2i".
+[student@workstation ~]$ 
+[student@workstation ~]$ oc new-project ${RHT_OCP4_DEV_USER}-strategy
+Now using project "kctfmp-strategy" on server "https://api.na46.prod.nextcle.com:6443".
+
+You can add applications to this project with the 'new-app' command. For example, try:
+
+    oc new-app rails-postgresql-example
+
+to build a new example application in Ruby. Or use kubectl to deploy a simple Kubernetes application:
+
+    kubectl create deployment hello-node --image=k8s.gcr.io/serve_hostname
+
+[student@workstation ~]$ 
+[student@workstation ~]$ oc new-app --as-deployment-config \
+> --name mysql -e MYSQL_USER=test -e MYSQL_PASSWORD=redhat \
+> -e MYSQL_DATABASE=testdb -e MYSQL_AIO=0 \
+> --docker-image registry.redhat.io/rhel8/mysql-80
+--> Found container image 6164312 (3 weeks old) from registry.redhat.io for "registry.redhat.io/rhel8/mysql-80"
+
+    MySQL 8.0 
+    --------- 
+    MySQL is a multi-user, multi-threaded SQL database server. The container image provides a containerized packaging of the MySQL mysqld daemon and client application. The mysqld server daemon accepts connections from clients and provides access to content from MySQL databases on behalf of the clients.
+
+    Tags: database, mysql, mysql80, mysql-80
+
+    * An image stream tag will be created as "mysql:latest" that will track this image
+    * This image will be deployed in deployment config "mysql"
+    * Port 3306/tcp will be load balanced by service "mysql"
+      * Other containers can access this service through the hostname "mysql"
+
+--> Creating resources ...
+    imagestream.image.openshift.io "mysql" created
+    deploymentconfig.apps.openshift.io "mysql" created
+    service "mysql" created
+--> Success
+    Application is not exposed. You can expose services to the outside world by executing one or more of the commands below:
+     'oc expose service/mysql' 
+    Run 'oc status' to view your app.
+[student@workstation ~]$ 
+[student@workstation ~]$ oc get pods
+NAME             READY   STATUS      RESTARTS   AGE
+mysql-1-deploy   0/1     Completed   0          15s
+mysql-1-n28mh    1/1     Running     0          12s
+[student@workstation ~]$ 
+[student@workstation ~]$ oc describe dc/mysql | grep -i strategy:
+Strategy:	Rolling
+[student@workstation ~]$ 
+[student@workstation ~]$ oc set triggers dc/mysql --from-config --remove
+deploymentconfig.apps.openshift.io/mysql triggers updated
+[student@workstation ~]$ 
+[student@workstation ~]$ oc patch dc/mysql --patch \
+> '{"spec":{"strategy":{"type":"Recreate"}}}'
+deploymentconfig.apps.openshift.io/mysql patched
+[student@workstation ~]$ 
+[student@workstation ~]$ oc patch dc/mysql --type=json \
+> -p='[{"op":"remove", "path": "/spec/strategy/rollingParams"}]'
+deploymentconfig.apps.openshift.io/mysql patched
+[student@workstation ~]$ 
+[student@workstation ~]$ 
+[student@workstation ~]$ 
+[student@workstation ~]$ ~/DO288/labs/strategy/post-hook.sh
+deploymentconfig.apps.openshift.io/mysql patched
+[student@workstation ~]$ 
+[student@workstation ~]$ oc describe dc/mysql | grep -iA 3 'strategy:'
+Strategy:	Recreate
+  Post-deployment hook (pod type, failure policy: Abort):
+    Container:	mysql
+    Command:	/bin/sh -c curl -L -s https://github.com/RedHatTraining/DO288-apps/releases/download/OCP-4.1-1/import.sh -o /tmp/import.sh&&chmod 755 /tmp/import.sh&&/tmp/import.sh
+[student@workstation ~]$ 
+[student@workstation ~]$ oc rollout latest dc/mysql
+deploymentconfig.apps.openshift.io/mysql rolled out
+[student@workstation ~]$ 
+[student@workstation ~]$ watch -n 2 oc get pods
+[student@workstation ~]$ 
+[student@workstation ~]$ oc logs mysql-2-hook-post
+Downloading SQL script that initializes the database...
+Trying 0 times, sleeping 2 sec between tries:
+Too many tries, giving up
+[student@workstation ~]$ 
+[student@workstation ~]$ oc get pods
+NAME                READY   STATUS      RESTARTS   AGE
+mysql-1-255tw       1/1     Running     0          104s
+mysql-1-deploy      0/1     Completed   0          5m41s
+mysql-2-deploy      0/1     Error       0          2m9s
+mysql-2-hook-post   0/1     Error       0          110s
+[student@workstation ~]$ 
+[student@workstation ~]$ oc set env dc/mysql HOOK_RETRIES=5
+deploymentconfig.apps.openshift.io/mysql updated
+[student@workstation ~]$ 
+[student@workstation ~]$ oc rollout latest dc/mysql
+deploymentconfig.apps.openshift.io/mysql rolled out
+[student@workstation ~]$ 
+[student@workstation ~]$ oc get pods
+NAME                READY   STATUS              RESTARTS   AGE
+mysql-1-deploy      0/1     Completed           0          7m2s
+mysql-2-deploy      0/1     Error               0          3m30s
+mysql-2-hook-post   0/1     Error               0          3m11s
+mysql-3-deploy      1/1     Running             0          11s
+mysql-3-wbhw2       0/1     ContainerCreating   0          3s
+[student@workstation ~]$ 
+[student@workstation ~]$ oc get pods
+NAME                READY   STATUS              RESTARTS   AGE
+mysql-1-deploy      0/1     Completed           0          7m5s
+mysql-2-deploy      0/1     Error               0          3m33s
+mysql-2-hook-post   0/1     Error               0          3m14s
+mysql-3-deploy      1/1     Running             0          14s
+mysql-3-hook-post   0/1     ContainerCreating   0          2s
+mysql-3-wbhw2       1/1     Running             0          6s
+[student@workstation ~]$ oc get pods
+NAME                READY   STATUS              RESTARTS   AGE
+mysql-1-deploy      0/1     Completed           0          7m6s
+mysql-2-deploy      0/1     Error               0          3m34s
+mysql-2-hook-post   0/1     Error               0          3m15s
+mysql-3-deploy      1/1     Running             0          15s
+mysql-3-hook-post   0/1     ContainerCreating   0          3s
+mysql-3-wbhw2       1/1     Running             0          7s
+[student@workstation ~]$ oc get pods
+NAME                READY   STATUS      RESTARTS   AGE
+mysql-1-deploy      0/1     Completed   0          7m8s
+mysql-2-deploy      0/1     Error       0          3m36s
+mysql-2-hook-post   0/1     Error       0          3m17s
+mysql-3-deploy      1/1     Running     0          17s
+mysql-3-hook-post   1/1     Running     0          5s
+mysql-3-wbhw2       1/1     Running     0          9s
+[student@workstation ~]$ oc get pods
+NAME                READY   STATUS      RESTARTS   AGE
+mysql-1-deploy      0/1     Completed   0          7m10s
+mysql-2-deploy      0/1     Error       0          3m38s
+mysql-2-hook-post   0/1     Error       0          3m19s
+mysql-3-deploy      1/1     Running     0          19s
+mysql-3-hook-post   1/1     Running     0          7s
+mysql-3-wbhw2       1/1     Running     0          11s
+[student@workstation ~]$ 
+[student@workstation ~]$ oc get pods
+NAME                READY   STATUS      RESTARTS   AGE
+mysql-1-deploy      0/1     Completed   0          7m23s
+mysql-2-deploy      0/1     Error       0          3m51s
+mysql-2-hook-post   0/1     Error       0          3m32s
+mysql-3-deploy      0/1     Completed   0          32s
+mysql-3-hook-post   0/1     Completed   0          20s
+mysql-3-wbhw2       1/1     Running     0          24s
+[student@workstation ~]$ 
+[student@workstation ~]$ oc get pods
+NAME                READY   STATUS      RESTARTS   AGE
+mysql-1-deploy      0/1     Completed   0          7m29s
+mysql-2-deploy      0/1     Error       0          3m57s
+mysql-2-hook-post   0/1     Error       0          3m38s
+mysql-3-deploy      0/1     Completed   0          38s
+mysql-3-hook-post   0/1     Completed   0          26s
+mysql-3-wbhw2       1/1     Running     0          30s
+[student@workstation ~]$ 
+[student@workstation ~]$ 
+[student@workstation ~]$ oc logs -f mysql-3-hook-post
+Downloading SQL script that initializes the database...
+Trying 5 times, sleeping 2 sec between tries:
+Checking if MySQL is up...Database is down
+Checking if MySQL is up...Database is down
+Checking if MySQL is up...Database is down
+Checking if MySQL is up...Database is down
+Checking if MySQL is up...Database is up
+mysql: [Warning] Using a password on the command line interface can be insecure.
+Database initialized successfully
+[student@workstation ~]$ 
+[student@workstation ~]$ 
+[student@workstation ~]$ oc get pods
+NAME                READY   STATUS      RESTARTS   AGE
+mysql-1-deploy      0/1     Completed   0          9m8s
+mysql-2-deploy      0/1     Error       0          5m36s
+mysql-2-hook-post   0/1     Error       0          5m17s
+mysql-3-deploy      0/1     Completed   0          2m17s
+mysql-3-hook-post   0/1     Completed   0          2m5s
+mysql-3-wbhw2       1/1     Running     0          2m9s
+[student@workstation ~]$ 
+[student@workstation ~]$ oc rsh mysql-3-wbhw2
+sh-4.4$ mysql -u$MYSQL_USER -p$MYSQL_PASSWORD $MYSQL_DATABASE -e "select * from users;"
+mysql: [Warning] Using a password on the command line interface can be insecure.
++---------+-------+-------------------+
+| user_id | name  | email             |
++---------+-------+-------------------+
+|       1 | user1 | user1@example.com |
+|       2 | user2 | user2@example.com |
+|       3 | user3 | user3@example.com |
++---------+-------+-------------------+
+sh-4.4$ 
+sh-4.4$ exit
+exit
+[student@workstation ~]$ 
+[student@workstation ~]$ oc delete project ${RHT_OCP4_DEV_USER}-strategy
+project.project.openshift.io "kctfmp-strategy" deleted
+[student@workstation ~]$ 
+[student@workstation ~]$ lab strategy finish
+
+Completing Guided Exercise: Implementing a Deployment Strategy
+
+ · Log in on OpenShift.........................................  SUCCESS
+ · Remove exercise files.......................................  SUCCESS
+
+Please use start if you wish to do the exercise again.
+
+[student@workstation ~]$ 
+
